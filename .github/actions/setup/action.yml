@@ -1,0 +1,31 @@
+name: 'Setup and Build Environment'
+description: 'Sets up environment and builds the Go application'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+        cache: true
+        cache-dependency-path: go.sum
+
+    - name: Cache Go tools
+      id: cache-tools
+      uses: actions/cache@v4
+      with:
+        path: ~/.go/bin
+        key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
+
+    - name: Install Mockery
+      if: steps.cache-tools.outputs.cache-hit != 'true'
+      shell: bash
+      run: go install github.com/vektra/mockery/v3@v3.3.5
+
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@v1
+      with:
+        version: 'v2.24.6'

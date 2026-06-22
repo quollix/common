@@ -1,0 +1,43 @@
+packages:
+  github.com/quollix/common/validation:
+    interfaces:
+      ComposeValidator:
+        config:
+          filename: compose_validator_mock.go
+          structname: ComposeValidatorMock
+      ServiceValidator:
+        config:
+          filename: service_validator_mock.go
+          structname: ServiceValidatorMock
+      ComposeConsistencyValidator:
+        config:
+          filename: compose_consistency_validator_mock.go
+          structname: ComposeConsistencyValidatorMock
+      VersionValidator:
+        config:
+          filename: version_validator_mock.go
+          structname: VersionValidatorMock
+  github.com/quollix/common/utils:
+    interfaces:
+      ComposeSyntaxChecker:
+        config:
+          filename: compose_syntax_checker_mock.go
+          structname: ComposeSyntaxCheckerMock
+      OsWrapper:
+        config:
+          filename: os_wrapper_mock.go
+          structname: OsWrapperMock
+      BytesSigner:
+        config:
+          filename: bytes_signer_mock.go
+          structname: BytesSignerMock
+      FileSystemOperator:
+        config:
+          filename: file_system_operator_mock.go
+          structname: FileSystemOperatorMock
+  github.com/quollix/common/store:
+    interfaces:
+      VersionSigningCodec:
+        config:
+          filename: version_signing_codec_mock.go
+          structname: VersionSigningCodecMock

@@ -1,0 +1,274 @@
+package validation
+
+import (
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/quollix/common/assert"
+)
+
+const (
+	sixtyThreeHexDecimalLetters = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde"
+)
+
+type testCaseType struct {
+	value       string
+	expectError bool
+}
+
+func assertCases(t *testing.T, tag string, cases []testCaseType) {
+	for _, c := range cases {
+		err := Validate("Value", tag, c.value)
+		if c.expectError {
+			if err == nil {
+				fmt.Printf("expected an error, but was nil: %s -> %s\n", tag, c.value)
+				t.Fail()
+			}
+		} else {
+			if err != nil {
+				fmt.Printf("expected nil, but an errors occurred: %s -> %s\n", tag, c.value)
+				t.Fail()
+			}
+		}
+	}
+}
+
+func TestValidateDefault(t *testing.T) {
+	cases := []testCaseType{
+		{"validusername", false},
+		{"user123", false},
+		{"user.123", true},
+		{"user-123", true},
+		{"user_123", true},
+		{"InvalidUsername", true},
+		{"user!@#", true},
+		{"us", true},
+		{"thisusernameiswaytoolong", true},
+	}
+	assertCases(t, FieldDefault, cases)
+}
+
+func TestValidateUsername(t *testing.T) {
+	cases := []testCaseType{
+		{"validusername", false},
+		{"user123", false},
+		{"user-123", false},
+		{"user_123", false},
+		{"user.123", true},
+		{"InvalidUsername", true},
+		{"user!@#", true},
+		{"us", true},
+		{"thisusernameiswaytoolong", true},
+	}
+	assertCases(t, FieldUsername, cases)
+}
+
+func TestValidateVersion(t *testing.T) {
+	cases := []testCaseType{
+		{"valid.versionname", false},
+		{"version123", false},
+		{"version.name123", false},
+		{"version_name123", true},
+		{"invalid.versionname!", true},
+		{"ta", true},
+		{"this.versionname.is.way.too.long", true},
+	}
+	assertCases(t, FieldVersionName, cases)
+}
+
+func TestValidateFileName(t *testing.T) {
+	cases := []testCaseType{
+		{"a", false},
+		{"file-name_01.txt", false},
+		{"name.with.many.parts-and_underscores123", false},
+		{"", true},
+		{"name with spaces.txt", true},
+		{"name/with/slash.txt", true},
+		{"name?with?question.txt", true},
+		{strings.Repeat("a", 100), false},
+		{strings.Repeat("a", 101), true},
+	}
+	assertCases(t, FieldFileName, cases)
+}
+
+func TestValidatePassword(t *testing.T) {
+	cases := []testCaseType{
+		{"validpassword._-", false},
+		{"validpassword!", true},
+		{"valid_pass123", false},
+		{"InvalidPassword", false}, // uppercase allowed by regex
+		{"valid!@#", true},
+		{"1234567", true},
+		{"12345678", false},
+		{"thispasswordiswaytoolong_xxxxx!", true},
+	}
+	assertCases(t, FieldPassword, cases)
+}
+
+func TestValidateCookie(t *testing.T) {
+	cases := []testCaseType{
+		{sixtyThreeHexDecimalLetters, true},
+		{sixtyThreeHexDecimalLetters + "f", false},
+		{sixtyThreeHexDecimalLetters + "ff", true},
+		{sixtyThreeHexDecimalLetters + "g", true},
+		{"", true},
+	}
+	assertCases(t, FieldSecret, cases)
+}
+func TestValidateEmail(t *testing.T) {
+	cases := []testCaseType{
+		{"", true},
+		{"admin@admin.com", false},
+		{"@admin.com", true},
+		{"admin@.com", true},
+		{"admin@admin.", true},
+		{"adminadmin.com", true},
+		{"admin@admincom", true},
+		{strings.Repeat("a", 64) + "@domain.com", false},
+		{strings.Repeat("a", 65) + "@domain.com", true},
+		{"abc@" + strings.Repeat("b", 253) + ".com", false},
+		{"abc@" + strings.Repeat("b", 254) + ".com", true},
+	}
+	assertCases(t, FieldEmail, cases)
+}
+
+func TestValidateNumber(t *testing.T) {
+	cases := []testCaseType{
+		{"0", false},
+		{"1", false},
+		{"-1", true},
+		{"a", true},
+		{"A", true},
+		{"z", true},
+		{"Z", true},
+		{"-", true},
+		{"_", true},
+		{".", true},
+		{",", true},
+		{"01234567890123456789", false}, // 20 digits
+		{"012345678901234567890", true}, // 21 digits
+	}
+	assertCases(t, FieldNumber, cases)
+}
+
+func TestSearchTerm(t *testing.T) {
+	cases := []testCaseType{
+		{"", false},
+		{"a", false},
+		{"1", false},
+		{"0123456789abcdefghij", false}, // length 20
+		{"asdf!", true},
+	}
+	assertCases(t, FieldSearchTerm, cases)
+}
+
+func TestHost(t *testing.T) {
+	cases := []testCaseType{
+		{"localhost", false},
+		{"localhost:8443", false},
+		{"localhost123", false},
+		{"example.com", false},
+		{"my_example-website.com", false},
+		{"a.", false},
+		{"", false},
+		{sixtyThreeHexDecimalLetters + "a", false},
+		{sixtyThreeHexDecimalLetters + "ab", true},
+	}
+	assertCases(t, FieldHost, cases)
+}
+
+func TestRemoteHost(t *testing.T) {
+	cases := []testCaseType{
+		{"localhost", false},
+		{"localhost:8443", true},
+		{"localhost123", false},
+		{"example.com", false},
+		{"my_example-website.com", false},
+		{"a.", false},
+		{"", false},
+		{sixtyThreeHexDecimalLetters + "a", false},
+		{sixtyThreeHexDecimalLetters + "ab", true},
+	}
+	assertCases(t, FieldRemoteHost, cases)
+}
+
+var sampleKnownHosts = "# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n[127.0.0.1]:2222 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQClESlJkZf90J0vZZNdAdvl4SpUDt+/VWpiMR8CYbGal8uu09a7UMP9hTeoPacrJtxXRooll7YWv8QRY+/c6UkZHaU4LCOwDJAATHVvKv1ynaGBzGbWK4sGSyTxuzyTYCzcqc1dO+te8qbHh6MI3mC5fF7U+jqU2pJDBfyHb80su4BmyAcSsRc1LgsrHBEYitfsblLWhwzhVRVvD4fRLasfcqpH7ein5peqJPiPOyBsl8+VEpMrH5AzeYsinD5RC84x+0yTOJEQMCdys+EC5i3/Pv3BJ2T/I9VyUoNfF3y9kcxoUIiSj7/kDDhtgAsC87Sv7n5WKrBzkpFpBurLZIaq+ucDUZunE7mbuntc7BI7FIdwxfZl8AgNGAeTAPsbCRORmdYzGNEbgbymMUeNmZYNcrykE8SAsGaaewM+5HnR6x7q7GSHarfIeVSWUDwhMcMCptrsIcSOZlJHEq4hDsb+cILLHQTeOmjuN7O6mLQw5zauIq39YpfzYj9u0PxLBiU=\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n[127.0.0.1]:2222 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBLO699LJQo4+GPThGkZ12YP10xfcf6Zn17nLKi85M1b4wBcb9iaBSLeRAMdszf41pWbW1BHlvXBUkfVbSaiqqh0=\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n[127.0.0.1]:2222 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIERZ7A/6JHp/4VSE3iKJGPWSV6SnYVfzGGamyHwYDsj4\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9"
+
+func TestKnownHosts(t *testing.T) {
+	cases := []testCaseType{
+		{sampleKnownHosts, false},
+		{sampleKnownHosts + "!", true},
+	}
+	assertCases(t, FieldKnownHosts, cases)
+}
+
+func TestResticBackupIdValidations(t *testing.T) {
+	cases := []testCaseType{
+		{"06b6458017d1e653195d696653c358e4e6a78772aed17582dd6539287332621f", false},
+		{sixtyThreeHexDecimalLetters + "a", false},
+		{"06b6458017d1e653195d696653c358e4e6a78772aed17582dd6539287332621fa", true},
+		{sixtyThreeHexDecimalLetters + "g", true},
+	}
+	assertCases(t, FieldResticBackupID, cases)
+}
+
+func TestDefaultOrEmpty(t *testing.T) {
+	cases := []testCaseType{
+		{"", false},
+		{"abc", false},
+		{"ab", true},
+		{"thisisaverylongdefaultvalue", true},
+		{"validdefault", false},
+		{"invalid_default", true},
+	}
+	assertCases(t, FieldDefaultOrEmpty, cases)
+}
+
+func TestFormatErrorWithContext(t *testing.T) {
+	assert.Equal(t, "simple error message", formatErrorWithContext("simple error message", nil))
+	assert.Equal(t, "simple error message (id: 42, name: john)", formatErrorWithContext("simple error message", map[string]any{
+		"name": "john",
+		"id":   42,
+	}))
+}
+
+func TestIgnore(t *testing.T) {
+	cases := []testCaseType{
+		{"abcd123,.-#+$%&/()=?", false},
+	}
+	assertCases(t, FieldIgnore, cases)
+}
+
+func TestLooseAllowlist(t *testing.T) {
+	cases := []testCaseType{
+		{"a", false},
+		{strings.Repeat("a", 128), false},
+		{strings.Repeat("a", 129), true},
+		{"", true},
+
+		{"AZaz09", false},
+		{"user.name", false},
+		{"user_name", false},
+		{"user-name", false},
+		{"user+name", false},
+		{"user=name", false},
+		{"user@name", false},
+
+		{"!@#$%^&*()_-+=.,:;/?[]{}|~<>", false},
+
+		{"abc def", true},
+		{"abc\tdef", true},
+		{"abc\ndef", true},
+		{"abc\rdef", true},
+
+		{`abc"def`, true},
+		{`abc'def`, true},
+		{`abc\def`, true},
+		{"abc`def", true},
+
+		{"ümlaut", true},
+	}
+
+	assertCases(t, FieldLoose, cases)
+}
