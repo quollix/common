@@ -11,6 +11,8 @@ type ValidationFunc func(fieldName, valueToValidate string) error
 
 var (
 	emailRegex        = `^[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,253}\.[a-zA-Z]{2,}$`
+	domainRegex       = `^[A-Za-z0-9.-]{1,253}$`
+	domainPathRegex   = `^[A-Za-z0-9.-]{1,253}(/[A-Za-z0-9._-]+)*$`
 	simpleSecretRegex = NewSimpleRegex("a-f0-9", 64, 64)
 
 	defaultRegex = NewSimpleRegex("a-z0-9", 3, 20)
@@ -34,6 +36,8 @@ const (
 	FieldType           = "type"
 	FieldDefaultOrEmpty = "default_or_empty"
 	FieldLoose          = "loose"
+	FieldDomain         = "domain"
+	FieldDomainPath     = "domain_path"
 )
 
 var ValidationMap = map[string]ValidationFunc{
@@ -52,6 +56,8 @@ var ValidationMap = map[string]ValidationFunc{
 	FieldSecret:         simpleSecretRegex,
 	FieldDefaultOrEmpty: NewGenericRegex(`^$|^[a-z0-9]{3,20}$`, "Invalid input. The content of the field %s must be empty or be between 3 and 20 characters long. Allowed symbols are: a-z0-9."),
 	FieldLoose:          NewGenericRegex(`^[A-Za-z0-9!@#$%^&*()_\-+=\.,:;\/\?\[\]\{\}\|~<>]{1,128}$`, "Invalid input. The content of the field %s contains unsupported symbols."),
+	FieldDomain:         NewGenericRegex(domainRegex, "Invalid input. The content of the field %s must be a valid domain without scheme, port, path, query, or fragment."),
+	FieldDomainPath:     NewGenericRegex(domainPathRegex, "Invalid input. The content of the field %s must be a valid domain with optional path, without scheme, port, query, or fragment."),
 }
 
 func NewSimpleRegex(allowedSymbols string, minLength, maxLength int) ValidationFunc {

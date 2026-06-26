@@ -193,6 +193,39 @@ func TestRemoteHost(t *testing.T) {
 	assertCases(t, FieldRemoteHost, cases)
 }
 
+func TestDomain(t *testing.T) {
+	cases := []testCaseType{
+		{"localhost", false},
+		{"client.example.com", false},
+		{"quollix.oidc-client.localhost", false},
+		{"https://client.example.com", true},
+		{"client.example.com:8443", true},
+		{"client.example.com/callback", true},
+		{"client.example.com?tenant=main", true},
+		{"client.example.com#fragment", true},
+		{"client example.com", true},
+		{"admin@client.example.com", true},
+	}
+	assertCases(t, FieldDomain, cases)
+}
+
+func TestDomainPath(t *testing.T) {
+	cases := []testCaseType{
+		{"localhost", false},
+		{"auth.example.com", false},
+		{"auth.example.com/realms/main", false},
+		{"auth.example.com/path_with_symbols-1.2", false},
+		{"auth.example.com/path~with~tilde", true},
+		{"https://auth.example.com/realms/main", true},
+		{"auth.example.com:8443/realms/main", true},
+		{"auth.example.com/realms/main?tenant=main", true},
+		{"auth.example.com/realms/main#fragment", true},
+		{"auth example.com/realms/main", true},
+		{"admin@auth.example.com/realms/main", true},
+	}
+	assertCases(t, FieldDomainPath, cases)
+}
+
 var sampleKnownHosts = "# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n[127.0.0.1]:2222 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQClESlJkZf90J0vZZNdAdvl4SpUDt+/VWpiMR8CYbGal8uu09a7UMP9hTeoPacrJtxXRooll7YWv8QRY+/c6UkZHaU4LCOwDJAATHVvKv1ynaGBzGbWK4sGSyTxuzyTYCzcqc1dO+te8qbHh6MI3mC5fF7U+jqU2pJDBfyHb80su4BmyAcSsRc1LgsrHBEYitfsblLWhwzhVRVvD4fRLasfcqpH7ein5peqJPiPOyBsl8+VEpMrH5AzeYsinD5RC84x+0yTOJEQMCdys+EC5i3/Pv3BJ2T/I9VyUoNfF3y9kcxoUIiSj7/kDDhtgAsC87Sv7n5WKrBzkpFpBurLZIaq+ucDUZunE7mbuntc7BI7FIdwxfZl8AgNGAeTAPsbCRORmdYzGNEbgbymMUeNmZYNcrykE8SAsGaaewM+5HnR6x7q7GSHarfIeVSWUDwhMcMCptrsIcSOZlJHEq4hDsb+cILLHQTeOmjuN7O6mLQw5zauIq39YpfzYj9u0PxLBiU=\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n[127.0.0.1]:2222 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBLO699LJQo4+GPThGkZ12YP10xfcf6Zn17nLKi85M1b4wBcb9iaBSLeRAMdszf41pWbW1BHlvXBUkfVbSaiqqh0=\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9\n[127.0.0.1]:2222 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIERZ7A/6JHp/4VSE3iKJGPWSV6SnYVfzGGamyHwYDsj4\n# 127.0.0.1:2222 SSH-2.0-OpenSSH_9.9"
 
 func TestKnownHosts(t *testing.T) {
