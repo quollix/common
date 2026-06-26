@@ -112,7 +112,7 @@ func (o *OsWrapperImpl) AllocateLocalhostPort() (string, error) {
 }
 
 func (o *OsWrapperImpl) Now() time.Time {
-	return time.Now()
+	return time.Now().UTC()
 }
 
 func (o *OsWrapperImpl) PromptUser(prompt string) (string, error) {
