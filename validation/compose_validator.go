@@ -10,12 +10,14 @@ import (
 var (
 	allowedTopLevelKeys             = u.MapOf("services", "volumes")
 	composePlaceholderRegex         = regexp.MustCompile(`\$\{([^}]+)\}`)
-	allowedComposePlaceholders      = []string{"CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SERVER_HOST"}
+	allowedComposePlaceholders      = []string{"BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SERVER_HOST"}
 	allowedComposePlaceholderLookup = map[string]struct{}{
+		"BASE_DOMAIN":   {},
 		"CLIENT_ID":     {},
 		"CLIENT_SECRET": {},
 		"IANA_TIMEZONE": {},
-		"SERVER_HOST":   {},
+		// SERVER_HOST is kept as a legacy alias for app compose files created before BASE_DOMAIN.
+		"SERVER_HOST": {},
 	}
 )
 
