@@ -3,6 +3,9 @@ package validation
 import (
 	"fmt"
 	"regexp"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/quollix/common/utils"
 )
@@ -38,6 +41,9 @@ const (
 	FieldLoose          = "loose"
 	FieldDomain         = "domain"
 	FieldDomainPath     = "domain_path"
+	FieldOidcSubject    = "oidc_subject"
+	FieldOidcClaim      = "oidc_claim"
+	FieldCredential     = "credential"
 )
 
 var ValidationMap = map[string]ValidationFunc{
@@ -58,6 +64,9 @@ var ValidationMap = map[string]ValidationFunc{
 	FieldLoose:          NewGenericRegex(`^[A-Za-z0-9!@#$%^&*()_\-+=\.,:;\/\?\[\]\{\}\|~<>]{1,128}$`, "Invalid input. The content of the field %s contains unsupported symbols."),
 	FieldDomain:         NewGenericRegex(domainRegex, "Invalid input. The content of the field %s must be a valid domain without scheme, port, path, query, or fragment."),
 	FieldDomainPath:     NewGenericRegex(domainPathRegex, "Invalid input. The content of the field %s must be a valid domain with optional path, without scheme, port, query, or fragment."),
+	FieldOidcSubject:    NewOpaqueStringValidator(false, 512),
+	FieldOidcClaim:      NewOpaqueStringValidator(true, 1024),
+	FieldCredential:     NewOpaqueStringValidator(false, 1024),
 }
 
 func NewSimpleRegex(allowedSymbols string, minLength, maxLength int) ValidationFunc {
@@ -88,6 +97,34 @@ func NewGenericRegex(regexString, humanReadableMessageTemplate string) Validatio
 		}
 		return nil
 	}
+}
+
+func NewOpaqueStringValidator(allowEmpty bool, maxLength int) ValidationFunc {
+	return func(fieldName, valueToValidate string) error {
+		if !allowEmpty && strings.TrimSpace(valueToValidate) == "" {
+			return buildOpaqueStringError(fieldName, maxLength, "must not be empty")
+		}
+		if len(valueToValidate) > maxLength {
+			return buildOpaqueStringError(fieldName, maxLength, "is too long")
+		}
+		if !utf8.ValidString(valueToValidate) {
+			return buildOpaqueStringError(fieldName, maxLength, "must be valid UTF-8")
+		}
+		for _, r := range valueToValidate {
+			if unicode.IsControl(r) {
+				return buildOpaqueStringError(fieldName, maxLength, "contains control characters")
+			}
+		}
+		return nil
+	}
+}
+
+func buildOpaqueStringError(fieldName string, maxLength int, reason string) error {
+	return utils.Logger.NewError(
+		fmt.Sprintf("Invalid input. The content of the field %s %s and must be at most %d bytes long.", fieldName, reason, maxLength),
+		fieldFieldNameKey, fieldName,
+		fieldMaxLength, maxLength,
+	)
 }
 
 func buildSimpleRegexErrorMessage(fieldName, allowedSymbols string, minLength, maxLength int) string {

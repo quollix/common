@@ -305,3 +305,58 @@ func TestLooseAllowlist(t *testing.T) {
 
 	assertCases(t, FieldLoose, cases)
 }
+
+func TestOidcSubject(t *testing.T) {
+	cases := []testCaseType{
+		{"user-123", false},
+		{"google-oauth2|123456789", false},
+		{"https://issuer.example.com/users/123", false},
+		{"subject with spaces", false},
+		{"ümlaut-subject", false},
+		{strings.Repeat("a", 512), false},
+
+		{"", true},
+		{"   ", true},
+		{"subject\nwith-newline", true},
+		{"subject\twith-tab", true},
+		{strings.Repeat("a", 513), true},
+		{string([]byte{0xff}), true},
+	}
+
+	assertCases(t, FieldOidcSubject, cases)
+}
+
+func TestOidcClaim(t *testing.T) {
+	cases := []testCaseType{
+		{"", false},
+		{"Jane Doe", false},
+		{"jane.doe@example.com", false},
+		{"名字", false},
+		{strings.Repeat("a", 1024), false},
+
+		{"Jane\nDoe", true},
+		{"Jane\tDoe", true},
+		{strings.Repeat("a", 1025), true},
+		{string([]byte{0xff}), true},
+	}
+
+	assertCases(t, FieldOidcClaim, cases)
+}
+
+func TestCredential(t *testing.T) {
+	cases := []testCaseType{
+		{"client-id", false},
+		{"secret with spaces and symbols !@#$%^&*()_+-=[]{}|;:',.<>/?", false},
+		{"ümlaut-secret", false},
+		{strings.Repeat("a", 1024), false},
+
+		{"", true},
+		{"   ", true},
+		{"secret\nwith-newline", true},
+		{"secret\twith-tab", true},
+		{strings.Repeat("a", 1025), true},
+		{string([]byte{0xff}), true},
+	}
+
+	assertCases(t, FieldCredential, cases)
+}
