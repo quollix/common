@@ -1,0 +1,15 @@
+{{define "frame"}}
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{.Frontend.PageTitle}} - {{.Static.Brand}}</title>
+    <link rel="icon" href="{{.Static.IconPath}}" type="image/svg">
+    {{.Frontend.HeadAssets}}
+</head>
+<body>
+    <header>{{.Static.Brand}}</header>
+    <main>{{template "content" .}}</main>
+</body>
+</html>
+{{end}}

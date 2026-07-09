@@ -1,0 +1,4 @@
+/* global {{.Frontend.Version}} */
+main {
+    display: block;
+}

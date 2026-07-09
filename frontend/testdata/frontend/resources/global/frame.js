@@ -1,0 +1,1 @@
+window.sampleFrame = "{{.Static.Brand}}";

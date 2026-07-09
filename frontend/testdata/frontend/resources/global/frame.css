@@ -1,0 +1,4 @@
+/* frame {{.Static.Brand}} {{.Frontend.Version}} */
+body {
+    margin: 0;
+}

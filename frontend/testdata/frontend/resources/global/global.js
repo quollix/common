@@ -1,0 +1,1 @@
+window.sampleGlobal = "{{.Static.Brand}}";
