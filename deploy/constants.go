@@ -1,7 +1,7 @@
 package deploy
 
 const (
-	HealthPath = "/health"
+	HealthPath = "/api/health"
 )
 
 const testComposeTemplate = `services:
