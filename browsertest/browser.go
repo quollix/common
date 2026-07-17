@@ -2,14 +2,22 @@ package browsertest
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/chromedp/chromedp"
 )
 
 func LaunchBrowser() (*Browser, error) {
+	browserPath, err := findChromiumPath()
+	if err != nil {
+		return nil, err
+	}
+
 	headless := os.Getenv("HEADFUL") != "true"
 	options := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.ExecPath(browserPath),
 		chromedp.Flag("headless", headless),
 		chromedp.IgnoreCertErrors,
 	)
@@ -40,6 +48,16 @@ func MustLaunchBrowser() *Browser {
 		panic(err)
 	}
 	return browser
+}
+
+func findChromiumPath() (string, error) {
+	for _, name := range []string{"chromium", "chromium-browser"} {
+		path, err := exec.LookPath(name)
+		if err == nil {
+			return path, nil
+		}
+	}
+	return "", fmt.Errorf("chromium executable not found in PATH, install chromium or chromium-browser")
 }
 
 func (b *Browser) NewIncognito() (*Browser, error) {
