@@ -3,6 +3,7 @@ package browsertest
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 
@@ -26,7 +27,7 @@ func LaunchBrowser() (*Browser, error) {
 	}
 
 	allocatorCtx, allocatorCancel := chromedp.NewExecAllocator(context.Background(), options...)
-	ctx, cancel := chromedp.NewContext(allocatorCtx)
+	ctx, cancel := chromedp.NewContext(allocatorCtx, chromedp.WithErrorf(chromedpErrorf))
 	if err := chromedp.Run(ctx); err != nil {
 		cancel()
 		allocatorCancel()
@@ -40,6 +41,13 @@ func LaunchBrowser() (*Browser, error) {
 			allocatorCancel()
 		},
 	}, nil
+}
+
+func chromedpErrorf(format string, args ...any) {
+	if format == "unhandled node event %T" && len(args) == 1 && fmt.Sprintf("%T", args[0]) == "*dom.EventTopLayerElementsUpdated" {
+		return
+	}
+	log.Printf(format, args...)
 }
 
 func MustLaunchBrowser() *Browser {
