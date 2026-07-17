@@ -156,5 +156,5 @@ type TestEmailRequest struct {
 }
 
 type InvitationEmailTemplateRequest struct {
-	Template string `json:"template" validate:"default_multiline"`
+	Template string `json:"template" validate:"ignore"`
 }

@@ -60,6 +60,10 @@ func findChromiumPath() (string, error) {
 	return "", fmt.Errorf("chromium executable not found in PATH, install chromium or chromium-browser")
 }
 
+func (b *Browser) InitialPage() *Page {
+	return &Page{browser: b, ctx: b.ctx, cancel: func() {}}
+}
+
 func (b *Browser) NewIncognito() (*Browser, error) {
 	ctx, cancel := chromedp.NewContext(b.ctx, chromedp.WithNewBrowserContext())
 	return &Browser{ctx: ctx, cancel: cancel}, nil
