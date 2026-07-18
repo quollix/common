@@ -2,6 +2,7 @@ package browser
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/quollix/common/browsertest"
 	"github.com/quollix/common/quollix/api"
@@ -94,7 +95,7 @@ func (b *Browser) SyncedLoginWithBrowser(username, password string) error {
 	}); err != nil {
 		return u.Logger.NewError(err.Error())
 	}
-	return b.syncClientCookieFromBrowser()
+	return b.waitUntilClientCookieSyncedFromBrowser()
 }
 
 func (b *Browser) UseAuthCookie(cookie *http.Cookie) error {
@@ -134,6 +135,20 @@ func (b *Browser) syncClientCookieFromBrowser() error {
 	}
 	b.Client.Parent.Cookie = cookie
 	return nil
+}
+
+func (b *Browser) waitUntilClientCookieSyncedFromBrowser() error {
+	var lastErr error
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		if err := b.syncClientCookieFromBrowser(); err != nil {
+			lastErr = err
+			time.Sleep(100 * time.Millisecond)
+			continue
+		}
+		return nil
+	}
+	return lastErr
 }
 
 func (b *Browser) getAuthCookieFromBrowser() (*http.Cookie, error) {
