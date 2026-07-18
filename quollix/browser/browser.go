@@ -25,19 +25,13 @@ func NewBrowser(baseURL string) (*Browser, error) {
 		return nil, u.Logger.NewError(err.Error())
 	}
 
-	page, err := browser.NewPage()
-	if err != nil {
-		_ = browser.Close()
-		return nil, u.Logger.NewError(err.Error())
-	}
-
 	quollixBrowser := &Browser{
 		BaseURL: baseURL,
 		Client:  api_client.NewQuollixClientForRootUrl(baseURL),
 		Browser: browser,
-		Page:    page,
+		Page:    browser.InitialPage(),
 	}
-	quollixBrowser.InstalledApps = &InstalledAppsPageHelpers{Page: page}
+	quollixBrowser.InstalledApps = &InstalledAppsPageHelpers{Page: quollixBrowser.Page}
 	return quollixBrowser, nil
 }
 
