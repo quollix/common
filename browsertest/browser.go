@@ -10,16 +10,15 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-func LaunchBrowser() (*Browser, error) {
+func NewBrowser(headful bool) (*Browser, error) {
 	browserPath, err := findChromiumPath()
 	if err != nil {
 		return nil, err
 	}
 
-	headless := os.Getenv("HEADFUL") != "true"
 	options := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.ExecPath(browserPath),
-		chromedp.Flag("headless", headless),
+		chromedp.Flag("headless", !headful),
 		chromedp.IgnoreCertErrors,
 	)
 	if os.Getenv("CI") == "true" {
@@ -48,14 +47,6 @@ func chromedpErrorf(format string, args ...any) {
 		return
 	}
 	log.Printf(format, args...)
-}
-
-func MustLaunchBrowser() *Browser {
-	browser, err := LaunchBrowser()
-	if err != nil {
-		panic(err)
-	}
-	return browser
 }
 
 func findChromiumPath() (string, error) {

@@ -19,8 +19,8 @@ type Browser struct {
 	InstalledApps *InstalledAppsPageHelpers
 }
 
-func NewBrowser(baseURL string) (*Browser, error) {
-	browser, err := browsertest.LaunchBrowser()
+func NewBrowser(baseURL string, headful bool) (*Browser, error) {
+	browser, err := browsertest.NewBrowser(headful)
 	if err != nil {
 		return nil, u.Logger.NewError(err.Error())
 	}
