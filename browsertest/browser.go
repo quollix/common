@@ -19,6 +19,8 @@ func NewBrowser(headful bool) (*Browser, error) {
 	options := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.ExecPath(browserPath),
 		chromedp.Flag("headless", !headful),
+		chromedp.Flag("use-fake-ui-for-media-stream", true),
+		chromedp.Flag("use-fake-device-for-media-stream", true),
 		chromedp.IgnoreCertErrors,
 	)
 	if os.Getenv("CI") == "true" {
