@@ -75,17 +75,36 @@ func (b *Browser) SyncedLoginWithBrowser(username, password string) error {
 	if err := b.Visit(api.Paths.FrontendSignIn); err != nil {
 		return err
 	}
-	if err := b.Page.MustElement("#sign-in-tab").Click(); err != nil {
+	signInTab, err := b.Page.Element("#sign-in-tab")
+	if err != nil {
 		return u.Logger.NewError(err.Error())
 	}
-	if err := b.Page.MustElement("#username-input").Input(username); err != nil {
+	if err := signInTab.Click(); err != nil {
 		return u.Logger.NewError(err.Error())
 	}
-	if err := b.Page.MustElement("#password-input").Input(password); err != nil {
+	usernameInput, err := b.Page.Element("#username-input")
+	if err != nil {
 		return u.Logger.NewError(err.Error())
 	}
-	if err := b.Page.DoAndWaitLoad(func() {
-		b.Page.MustElement("#sign-in-button").MustClick()
+	if err := usernameInput.Input(username); err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	passwordInput, err := b.Page.Element("#password-input")
+	if err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	if err := passwordInput.Input(password); err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	if err := b.Page.DoAndWaitLoad(func() error {
+		signInButton, err := b.Page.Element("#sign-in-button")
+		if err != nil {
+			return u.Logger.NewError(err.Error())
+		}
+		if err := signInButton.Click(); err != nil {
+			return u.Logger.NewError(err.Error())
+		}
+		return nil
 	}); err != nil {
 		return u.Logger.NewError(err.Error())
 	}
@@ -165,9 +184,9 @@ func (b *Browser) getAuthCookieFromBrowser() (*http.Cookie, error) {
 	return nil, u.Logger.NewError("no auth cookie found")
 }
 
-func (b *Browser) OpenInstalledAppsPage() *InstalledAppsPageHelpers {
+func (b *Browser) OpenInstalledAppsPage() (*InstalledAppsPageHelpers, error) {
 	if err := b.Visit(api.Paths.FrontendInstalledApps); err != nil {
-		panic(err)
+		return nil, err
 	}
-	return b.InstalledApps
+	return b.InstalledApps, nil
 }

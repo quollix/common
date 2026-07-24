@@ -58,24 +58,26 @@ func (p *Page) Info() (*PageInfo, error) {
 	return &PageInfo{URL: currentURL}, nil
 }
 
-func (p *Page) DoAndWaitLoad(action func()) error {
-	action()
+func (p *Page) DoAndWaitLoad(action func() error) error {
+	if err := action(); err != nil {
+		return err
+	}
 	return p.WaitLoad()
 }
 
-func (p *Page) MustWaitOpen() func() *Page {
+func (p *Page) WaitOpen() func() (*Page, error) {
 	targetIDChannel := chromedp.WaitNewTarget(p.ctx, func(info *target.Info) bool {
 		return info.Type == "page"
 	})
-	return func() *Page {
+	return func() (*Page, error) {
 		targetID := <-targetIDChannel
 		ctx, cancel := chromedp.NewContext(p.browser.ctx, chromedp.WithTargetID(targetID))
 		page := &Page{browser: p.browser, ctx: ctx, cancel: cancel}
 		if err := chromedp.Run(ctx); err != nil {
 			cancel()
-			panic(err)
+			return nil, err
 		}
-		return page
+		return page, nil
 	}
 }
 

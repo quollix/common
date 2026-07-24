@@ -34,11 +34,15 @@ func (p *InstalledAppsPageHelpers) ClickOpenButton(appName string) error {
 }
 
 func (p *InstalledAppsPageHelpers) OpenAppInNewTab(appName string) (*browsertest.Page, error) {
-	waitForNewTab := p.Page.MustWaitOpen()
+	waitForNewTab := p.Page.WaitOpen()
 	if err := p.ClickOpenButton(appName); err != nil {
 		return nil, err
 	}
-	return waitForNewTab(), nil
+	page, err := waitForNewTab()
+	if err != nil {
+		return nil, u.Logger.NewError(err.Error())
+	}
+	return page, nil
 }
 
 func (p *InstalledAppsPageHelpers) FindRowByAppName(appName string) (*browsertest.Element, error) {
