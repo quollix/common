@@ -20,6 +20,7 @@ services:
       - WELL_KNOWN_ENDPOINT=https://${HOST}/.well-known/openid-configuration
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
+      - APP_SECRET=${APP_SECRET}
     volumes:
       - samplemaintainer_gitea_data:/data
 
@@ -40,6 +41,7 @@ services:
             - WELL_KNOWN_ENDPOINT=https://my-domain.com/.well-known/openid-configuration
             - CLIENT_ID=abcdef
             - CLIENT_SECRET=ghijkl
+            - APP_SECRET=mnopqr
             - TZ=${IANA_TIMEZONE}
         restart: unless-stopped
         networks:
@@ -87,6 +89,7 @@ volumes:
 func TestCompleteDockerComposeYaml(t *testing.T) {
 	dataMap := map[string]string{
 		"HOST":          "my-domain.com",
+		"APP_SECRET":    "mnopqr",
 		"CLIENT_ID":     "abcdef",
 		"CLIENT_SECRET": "ghijkl",
 	}

@@ -10,8 +10,9 @@ import (
 var (
 	allowedTopLevelKeys             = u.MapOf("services", "volumes")
 	composePlaceholderRegex         = regexp.MustCompile(`\$\{([^}]+)\}`)
-	allowedComposePlaceholders      = []string{"BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SERVER_HOST"}
+	allowedComposePlaceholders      = []string{"APP_SECRET", "BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SERVER_HOST"}
 	allowedComposePlaceholderLookup = map[string]struct{}{
+		"APP_SECRET":    {},
 		"BASE_DOMAIN":   {},
 		"CLIENT_ID":     {},
 		"CLIENT_SECRET": {},
