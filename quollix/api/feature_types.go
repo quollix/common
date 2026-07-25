@@ -38,7 +38,7 @@ type SetUserEnabledRequest struct {
 
 type AppDto struct {
 	AppId, Maintainer, AppName, VersionName, AccessPolicy,
-	Port, ClientId, ClientSecret, DocsUrl, VersionCreationTimestampFormatted, VersionCreationTimestampTooltip string
+	Port, ClientId, ClientSecret, AppSecret, DocsUrl, VersionCreationTimestampFormatted, VersionCreationTimestampTooltip string
 	IsRunning, IsOfficialDatabaseApp, AutomaticBackupsEnabled, AutomaticUpdatesEnabled, IsOfficial bool
 	VersionCreationTimestamp                                                                       time.Time
 	VersionContent                                                                                 []byte
