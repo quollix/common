@@ -17,15 +17,18 @@ func TestFindDir(t *testing.T) {
 func TestExtractFromLine(t *testing.T) {
 	assert.Equal(t, 0, len(extractTagsFromLine("// random comment")))
 
-	tags := extractTagsFromLine("//go:build a !b c")
-	assert.Equal(t, 2, len(tags))
+	tags := extractTagsFromLine("//go:build a && !b || (c && d.e)")
+	assert.Equal(t, 4, len(tags))
 	assert.Equal(t, "a", tags[0])
-	assert.Equal(t, "c", tags[1])
+	assert.Equal(t, "b", tags[1])
+	assert.Equal(t, "c", tags[2])
+	assert.Equal(t, "d.e", tags[3])
 
-	tags = extractTagsFromLine("// +build a !b c")
-	assert.Equal(t, 2, len(tags))
+	tags = extractTagsFromLine("// +build a,!b c")
+	assert.Equal(t, 3, len(tags))
 	assert.Equal(t, "a", tags[0])
-	assert.Equal(t, "c", tags[1])
+	assert.Equal(t, "b", tags[1])
+	assert.Equal(t, "c", tags[2])
 }
 
 func TestIsSystemApp(t *testing.T) {

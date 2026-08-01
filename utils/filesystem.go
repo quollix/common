@@ -48,7 +48,7 @@ func CollectBuildTags(dir string) ([]string, error) {
 		if err != nil || d.IsDir() || !strings.HasSuffix(path, ".go") {
 			return err
 		}
-			f, err := os.Open(path) // #nosec G304 G122: walk input is the intended repository tree and each matched file must be opened
+		f, err := os.Open(path) // #nosec G304 G122: walk input is the intended repository tree and each matched file must be opened
 		if err != nil {
 			return Logger.NewError(err.Error())
 		}
@@ -77,29 +77,28 @@ func CollectBuildTags(dir string) ([]string, error) {
 }
 
 func extractTagsFromLine(line string) []string {
-	var tags []string
 	if strings.HasPrefix(line, "//go:build") {
-		fields := strings.Fields(line)
-		if len(fields) > 1 {
-			tags = fields[1:]
-		}
+		return extractBuildTagTokens(strings.TrimPrefix(line, "//go:build"))
 	}
 	if strings.HasPrefix(line, "// +build") {
-		fields := strings.Fields(line)
-		if len(fields) > 2 {
-			tags = fields[2:]
-		}
+		return extractBuildTagTokens(strings.TrimPrefix(line, "// +build"))
 	}
 
-	var filteredTags []string
-	for _, tag := range tags {
-		if strings.HasPrefix(tag, "!") {
-			continue
-		}
-		filteredTags = append(filteredTags, tag)
-	}
+	return nil
+}
 
-	return filteredTags
+func extractBuildTagTokens(expression string) []string {
+	return strings.FieldsFunc(expression, func(r rune) bool {
+		return !isBuildTagTokenRune(r)
+	})
+}
+
+func isBuildTagTokenRune(r rune) bool {
+	return r >= 'a' && r <= 'z' ||
+		r >= 'A' && r <= 'Z' ||
+		r >= '0' && r <= '9' ||
+		r == '_' ||
+		r == '.'
 }
 
 // BuildWholeGoProject this function is meant to detect compile errors in the test code with build tags
