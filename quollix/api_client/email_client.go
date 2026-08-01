@@ -17,7 +17,7 @@ type invitationEmailTemplateRequest struct {
 }
 
 func (c *EmailClient) InviteViaEmail(username, email string) error {
-	request := api.InviteUserRequest{Username: username, Email: email}
+	request := api.InviteUserViaEmailRequest{Username: username, Email: email}
 	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendUsersInviteUserViaEmail, request)
 	return err
 }

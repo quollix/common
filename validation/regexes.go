@@ -14,6 +14,7 @@ type ValidationFunc func(fieldName, valueToValidate string) error
 
 var (
 	emailRegex        = `^[a-zA-Z0-9._%+-]{1,64}@[a-zA-Z0-9.-]{1,253}\.[a-zA-Z]{2,}$`
+	emailOrEmptyRegex = `^$|` + emailRegex
 	domainRegex       = `^[A-Za-z0-9.-]{1,253}$`
 	domainPathRegex   = `^[A-Za-z0-9.-]{1,253}(/[A-Za-z0-9._-]+)*$`
 	simpleSecretRegex = NewSimpleRegex("a-f0-9", 64, 64)
@@ -30,6 +31,7 @@ const (
 	FieldSearchTerm     = "search_term"
 	FieldPassword       = "password"
 	FieldEmail          = "email"
+	FieldEmailOrEmpty   = "email_or_empty"
 	FieldNumber         = "number"
 	FieldHost           = "host"
 	FieldKnownHosts     = "known_hosts"
@@ -54,6 +56,7 @@ var ValidationMap = map[string]ValidationFunc{
 	FieldSearchTerm:     NewSimpleRegex("a-z0-9", 0, 20),
 	FieldPassword:       NewSimpleRegex("a-zA-Z0-9._-", 8, 30),
 	FieldEmail:          NewGenericRegex(emailRegex, "Invalid input. The content of the field %s must be a valid email address."),
+	FieldEmailOrEmpty:   NewGenericRegex(emailOrEmptyRegex, "Invalid input. The content of the field %s must be empty or be a valid email address."),
 	FieldNumber:         NewSimpleRegex("0-9", 1, 20),
 	FieldHost:           NewSimpleRegex("a-zA-Z0-9:._-", 0, 64),
 	FieldKnownHosts:     NewGenericRegex(`^[A-Za-z0-9.:,/_+=#@\[\]| \r\n-]{0,}$`, "Invalid input. The content of the field %s must contain valid SSH known_hosts entries."),

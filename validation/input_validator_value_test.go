@@ -133,6 +133,19 @@ func TestValidateEmail(t *testing.T) {
 	assertCases(t, FieldEmail, cases)
 }
 
+func TestValidateEmailOrEmpty(t *testing.T) {
+	cases := []testCaseType{
+		{"", false},
+		{"admin@admin.com", false},
+		{"@admin.com", true},
+		{"admin@.com", true},
+		{"admin@admin.", true},
+		{"adminadmin.com", true},
+		{"admin@admincom", true},
+	}
+	assertCases(t, FieldEmailOrEmpty, cases)
+}
+
 func TestValidateNumber(t *testing.T) {
 	cases := []testCaseType{
 		{"0", false},

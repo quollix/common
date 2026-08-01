@@ -13,6 +13,11 @@ type Credentials struct {
 
 type InviteUserRequest struct {
 	Username string `json:"username" validate:"username"`
+	Email    string `json:"email" validate:"email_or_empty"`
+}
+
+type InviteUserViaEmailRequest struct {
+	Username string `json:"username" validate:"username"`
 	Email    string `json:"email" validate:"email"`
 }
 
