@@ -2,6 +2,7 @@ package api
 
 type PathsType struct {
 	FrontendInstalledApps    string
+	FrontendAppOpen          string
 	FrontendIndex            string
 	FrontendSignIn           string
 	FrontendSettings         string
@@ -168,6 +169,7 @@ var Paths = func() PathsType {
 	p := PathsType{}
 
 	p.FrontendInstalledApps = "/installed-apps"
+	p.FrontendAppOpen = "/app-open"
 	p.FrontendIndex = "/"
 	p.FrontendSignIn = "/sign-in"
 	p.FrontendSettings = "/settings"
