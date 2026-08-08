@@ -2,10 +2,10 @@ package api_client
 
 import (
 	"encoding/json"
+
 	api "github.com/quollix/common/quollix/api"
 
 	"github.com/quollix/common/store"
-	u "github.com/quollix/common/utils"
 )
 
 type QuollixAppsClient struct {
@@ -120,22 +120,11 @@ func (c *QuollixAppsClient) UpdateMaintenanceSettings(appId string, autoUpdatesE
 }
 
 func (c *QuollixAppsClient) UploadVersionFile(file api.BinaryFile) error {
-	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppUploadToApplication, file)
-	return err
+	return c.quollix.uploadBinaryFile(api.Paths.BackendAppUploadToApplication, file)
 }
 
 func (c *QuollixAppsClient) DownloadVersionFile(appId string) (*api.BinaryFile, error) {
-	resp, err := c.quollix.Parent.DoRequestWithFullResponse(api.Paths.BackendAppDownloadFromApplication, api.NumberString{Value: appId})
-	if err != nil {
-		return nil, err
-	}
-	defer u.Close(resp.Body)
-	var versionFile api.BinaryFile
-	err = json.NewDecoder(resp.Body).Decode(&versionFile)
-	if err != nil {
-		return nil, err
-	}
-	return &versionFile, nil
+	return c.quollix.downloadBinaryFile(api.Paths.BackendAppDownloadFromApplication, api.NumberString{Value: appId})
 }
 
 func (c *QuollixAppsClient) GetCurrentOperations() ([]string, bool, error) {
@@ -151,18 +140,9 @@ func (c *QuollixAppsClient) GetCurrentOperations() ([]string, bool, error) {
 }
 
 func (c *QuollixAppsClient) DownloadVersion(maintainer, appName, versionName string) (*api.BinaryFile, error) {
-	responseBody, err := c.quollix.Parent.DoRequest(api.Paths.BackendStoreVersionsDownload, store.VersionTree{
+	return c.quollix.downloadBinaryFile(api.Paths.BackendStoreVersionsDownload, store.VersionTree{
 		Maintainer:  maintainer,
 		AppName:     appName,
 		VersionName: versionName,
 	})
-	if err != nil {
-		return nil, err
-	}
-	var download api.BinaryFile
-	err = json.Unmarshal(responseBody, &download)
-	if err != nil {
-		return nil, err
-	}
-	return &download, nil
 }

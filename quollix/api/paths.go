@@ -101,6 +101,8 @@ type PathsType struct {
 	BackendSettingsCertificateDownload            string
 	BackendSettingsCertificateReset               string
 	BackendSettingsCertificateOperationStatus     string
+	BackendSettingsAcmeAccountPrivateKeyUpload    string
+	BackendSettingsAcmeAccountPrivateKeyDownload  string
 	BackendSettingsStartDns01CertificateChallenge string
 	BackendSettingsSsh                            string
 	BackendSettingsSshRead                        string
@@ -272,6 +274,8 @@ var Paths = func() PathsType {
 	p.BackendSettingsCertificateDownload = p.BackendSettingsCertificate + "/download"
 	p.BackendSettingsCertificateReset = p.BackendSettingsCertificate + "/reset"
 	p.BackendSettingsCertificateOperationStatus = p.BackendSettingsCertificate + "/operation-status"
+	p.BackendSettingsAcmeAccountPrivateKeyUpload = p.BackendSettingsCertificate + "/acme-account-private-key/upload"
+	p.BackendSettingsAcmeAccountPrivateKeyDownload = p.BackendSettingsCertificate + "/acme-account-private-key/download"
 	p.BackendSettingsStartDns01CertificateChallenge = p.BackendSettingsCertificate + "/generate"
 
 	p.BackendSettingsSsh = p.BackendSettings + "/ssh"
