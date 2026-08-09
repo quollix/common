@@ -41,13 +41,17 @@ type SetUserEnabledRequest struct {
 	IsEnabled bool   `json:"is_enabled"`
 }
 
-type AppDto struct {
+type AdminAppDto struct {
 	AppId, Maintainer, AppName, VersionName, AccessPolicy,
 	Port, ClientId, ClientSecret, AppSecret, DocsUrl, VersionCreationTimestampFormatted, VersionCreationTimestampTooltip string
 	IsRunning, IsOfficialDatabaseApp, AutomaticBackupsEnabled, AutomaticUpdatesEnabled, IsOfficial bool
 	VersionCreationTimestamp                                                                       time.Time
 	VersionContent                                                                                 []byte
 	Secrets                                                                                        map[string]string
+}
+
+type NonAdminAppDto struct {
+	Maintainer, AppName string
 }
 
 type AppSecretRegenerationRequest struct {

@@ -54,12 +54,25 @@ func (c *QuollixAppsClient) ListVersions(userName, appName string) ([]store.Lean
 	return versions, nil
 }
 
-func (c *QuollixAppsClient) ListInstalled() ([]api.AppDto, error) {
-	responseBody, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppsList, nil)
+func (c *QuollixAppsClient) ListInstalledForAdmin() ([]api.AdminAppDto, error) {
+	responseBody, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppsListForAdmin, nil)
 	if err != nil {
 		return nil, err
 	}
-	var apps []api.AppDto
+	var apps []api.AdminAppDto
+	err = json.Unmarshal(responseBody, &apps)
+	if err != nil {
+		return nil, err
+	}
+	return apps, nil
+}
+
+func (c *QuollixAppsClient) ListInstalledForNonAdmin() ([]api.NonAdminAppDto, error) {
+	responseBody, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppsListForNonAdmin, nil)
+	if err != nil {
+		return nil, err
+	}
+	var apps []api.NonAdminAppDto
 	err = json.Unmarshal(responseBody, &apps)
 	if err != nil {
 		return nil, err
