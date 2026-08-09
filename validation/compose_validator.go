@@ -10,8 +10,10 @@ import (
 var (
 	allowedTopLevelKeys             = u.MapOf("services", "volumes")
 	composePlaceholderRegex         = regexp.MustCompile(`\$\{([^}]+)\}`)
-	allowedComposePlaceholders      = []string{"APP_SECRET", "BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SERVER_HOST"}
+	secretComposePlaceholderRegex   = regexp.MustCompile(`^SECRET_[A-Z0-9_]+$`)
+	allowedComposePlaceholders      = []string{"APP_SECRET", "BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SECRET_*", "SERVER_HOST"}
 	allowedComposePlaceholderLookup = map[string]struct{}{
+		// Deprecated: APP_SECRET is kept for legacy app-secret compatibility. New app definitions should use purpose-specific SECRET_* placeholders.
 		"APP_SECRET":    {},
 		"BASE_DOMAIN":   {},
 		"CLIENT_ID":     {},
@@ -45,7 +47,7 @@ func (f *ComposeValidatorImpl) ValidateComposePlaceholders(composeFileBytes []by
 	matches := composePlaceholderRegex.FindAllSubmatch(composeFileBytes, -1)
 	for _, match := range matches {
 		placeholderName := string(match[1])
-		if _, isAllowed := allowedComposePlaceholderLookup[placeholderName]; isAllowed {
+		if isAllowedComposePlaceholder(placeholderName) {
 			continue
 		}
 		return u.Logger.NewError(
@@ -55,6 +57,13 @@ func (f *ComposeValidatorImpl) ValidateComposePlaceholders(composeFileBytes []by
 		)
 	}
 	return nil
+}
+
+func isAllowedComposePlaceholder(placeholderName string) bool {
+	if _, isAllowed := allowedComposePlaceholderLookup[placeholderName]; isAllowed {
+		return true
+	}
+	return secretComposePlaceholderRegex.MatchString(placeholderName)
 }
 
 func (f *ComposeValidatorImpl) ValidateComposeMap(compose map[string]any, maintainerName, appName string) error {

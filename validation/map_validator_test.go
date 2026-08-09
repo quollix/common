@@ -135,6 +135,12 @@ func TestValidateComposePlaceholders_WithAllowedPlaceholder(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestValidateComposePlaceholders_WithAllowedSecretPlaceholder(t *testing.T) {
+	f := &ComposeValidatorImpl{}
+	err := f.ValidateComposePlaceholders([]byte("${SECRET_POSTGRES_PASSWORD}${SECRET_APP_2_TOKEN}"))
+	assert.Nil(t, err)
+}
+
 func TestValidateComposePlaceholders_WithUnexpectedPlaceholder(t *testing.T) {
 	f := &ComposeValidatorImpl{}
 	err := f.ValidateComposePlaceholders([]byte("${CLIENTID}"))
@@ -143,6 +149,18 @@ func TestValidateComposePlaceholders_WithUnexpectedPlaceholder(t *testing.T) {
 		err,
 		"unsupported docker compose placeholder",
 		"unsupported_placeholder", "CLIENTID",
+		"allowed_placeholders", allowedComposePlaceholders,
+	)
+}
+
+func TestValidateComposePlaceholders_WithInvalidSecretPlaceholder(t *testing.T) {
+	f := &ComposeValidatorImpl{}
+	err := f.ValidateComposePlaceholders([]byte("${SECRET_postgres_PASSWORD}"))
+	deepstack.AssertDeepStackError(
+		t,
+		err,
+		"unsupported docker compose placeholder",
+		"unsupported_placeholder", "SECRET_postgres_PASSWORD",
 		"allowed_placeholders", allowedComposePlaceholders,
 	)
 }
