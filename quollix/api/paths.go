@@ -21,6 +21,8 @@ type PathsType struct {
 	FrontendMetrics          string
 	FrontendReports          string
 	FrontendAppSso           string
+	FrontendAppsWithSecrets  string
+	FrontendAppSecret        string
 	FrontendProviders        string
 	FrontendClients          string
 	FrontendCompliance       string
@@ -64,6 +66,7 @@ type PathsType struct {
 
 	BackendApps                            string
 	BackendAppsList                        string
+	BackendAppSecretRegenerate             string
 	BackendAppsDelete                      string
 	BackendAppsUpdate                      string
 	BackendAppsStart                       string
@@ -185,6 +188,8 @@ var Paths = func() PathsType {
 	p.FrontendMetrics = "/metrics"
 	p.FrontendReports = "/reports"
 	p.FrontendAppSso = "/sso"
+	p.FrontendAppsWithSecrets = "/apps-with-secrets"
+	p.FrontendAppSecret = "/app-secret"
 	p.FrontendProviders = "/providers"
 	p.FrontendClients = "/clients"
 	p.FrontendCompliance = "/compliance"
@@ -236,6 +241,7 @@ var Paths = func() PathsType {
 
 	p.BackendApps = p.BackendApi + "/apps"
 	p.BackendAppsList = p.BackendApps + "/list"
+	p.BackendAppSecretRegenerate = p.BackendApps + "/secrets/regenerate"
 	p.BackendAppsDelete = p.BackendApps + "/delete"
 	p.BackendAppsUpdate = p.BackendApps + "/update"
 	p.BackendAppsStart = p.BackendApps + "/start"

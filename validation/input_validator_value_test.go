@@ -116,6 +116,22 @@ func TestValidateCookie(t *testing.T) {
 	}
 	assertCases(t, FieldSecret, cases)
 }
+
+func TestValidateComposeSecretName(t *testing.T) {
+	cases := []testCaseType{
+		{"SECRET_POSTGRES_PASSWORD", false},
+		{"SECRET_1", false},
+		{"SECRET_VALUE_123", false},
+		{"SECRET_", true},
+		{"POSTGRES_PASSWORD", true},
+		{"secret_POSTGRES_PASSWORD", true},
+		{"SECRET-postgres-password", true},
+		{"SECRET_POSTGRES_PASSWORD!", true},
+		{strings.Repeat("A", 136), true},
+	}
+	assertCases(t, FieldComposeSecret, cases)
+}
+
 func TestValidateEmail(t *testing.T) {
 	cases := []testCaseType{
 		{"", true},

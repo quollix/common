@@ -47,6 +47,12 @@ type AppDto struct {
 	IsRunning, IsOfficialDatabaseApp, AutomaticBackupsEnabled, AutomaticUpdatesEnabled, IsOfficial bool
 	VersionCreationTimestamp                                                                       time.Time
 	VersionContent                                                                                 []byte
+	Secrets                                                                                        map[string]string
+}
+
+type AppSecretRegenerationRequest struct {
+	AppId string `json:"app_id" validate:"number"`
+	Name  string `json:"name" validate:"compose_secret_name"`
 }
 
 type ChangeAccessPolicyRequest struct {

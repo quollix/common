@@ -83,6 +83,14 @@ func (c *QuollixAppsClient) Update(appId string) error {
 	return nil
 }
 
+func (c *QuollixAppsClient) RegenerateSecret(appId, name string) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppSecretRegenerate, api.AppSecretRegenerationRequest{
+		AppId: appId,
+		Name:  name,
+	})
+	return err
+}
+
 func (c *QuollixAppsClient) Start(appId string) error {
 	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppsStart, api.NumberString{Value: appId})
 	if err != nil {

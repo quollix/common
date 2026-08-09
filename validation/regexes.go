@@ -46,6 +46,7 @@ const (
 	FieldOidcSubject    = "oidc_subject"
 	FieldOidcClaim      = "oidc_claim"
 	FieldCredential     = "credential"
+	FieldComposeSecret  = "compose_secret_name"
 )
 
 var ValidationMap = map[string]ValidationFunc{
@@ -70,6 +71,7 @@ var ValidationMap = map[string]ValidationFunc{
 	FieldOidcSubject:    NewOpaqueStringValidator(false, 512),
 	FieldOidcClaim:      NewOpaqueStringValidator(true, 1024),
 	FieldCredential:     NewOpaqueStringValidator(false, 1024),
+	FieldComposeSecret:  NewGenericRegex(`^SECRET_[A-Z0-9_]{1,128}$`, "Invalid input. The content of the field %s must be a valid compose secret name."),
 }
 
 func NewSimpleRegex(allowedSymbols string, minLength, maxLength int) ValidationFunc {
