@@ -69,6 +69,7 @@ type PathsType struct {
 	BackendAppsListForNonAdmin             string
 	BackendAppSecretUpdate                 string
 	BackendAppSecretRegenerate             string
+	BackendAppSecretDelete                 string
 	BackendAppsDelete                      string
 	BackendAppsUpdate                      string
 	BackendAppsStart                       string
@@ -246,6 +247,7 @@ var Paths = func() PathsType {
 	p.BackendAppsListForNonAdmin = p.BackendApps + "/list-for-non-admin"
 	p.BackendAppSecretUpdate = p.BackendApps + "/secrets/update"
 	p.BackendAppSecretRegenerate = p.BackendApps + "/secrets/regenerate"
+	p.BackendAppSecretDelete = p.BackendApps + "/secrets/delete"
 	p.BackendAppsDelete = p.BackendApps + "/delete"
 	p.BackendAppsUpdate = p.BackendApps + "/update"
 	p.BackendAppsStart = p.BackendApps + "/start"

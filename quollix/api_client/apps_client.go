@@ -97,7 +97,15 @@ func (c *QuollixAppsClient) Update(appId string) error {
 }
 
 func (c *QuollixAppsClient) RegenerateSecret(appId, name string) error {
-	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppSecretRegenerate, api.AppSecretRegenerationRequest{
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppSecretRegenerate, api.AppSecretRequest{
+		AppId: appId,
+		Name:  name,
+	})
+	return err
+}
+
+func (c *QuollixAppsClient) DeleteSecret(appId, name string) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendAppSecretDelete, api.AppSecretRequest{
 		AppId: appId,
 		Name:  name,
 	})

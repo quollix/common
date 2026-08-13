@@ -54,7 +54,7 @@ type NonAdminAppDto struct {
 	Maintainer, AppName string
 }
 
-type AppSecretRegenerationRequest struct {
+type AppSecretRequest struct {
 	AppId string `json:"app_id" validate:"number"`
 	Name  string `json:"name" validate:"compose_secret_name"`
 }
