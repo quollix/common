@@ -59,6 +59,12 @@ type AppSecretRegenerationRequest struct {
 	Name  string `json:"name" validate:"compose_secret_name"`
 }
 
+type AppSecretUpdateRequest struct {
+	AppId string `json:"app_id" validate:"number"`
+	Name  string `json:"name" validate:"compose_secret_name"`
+	Value string `json:"value" validate:"credential"`
+}
+
 type ChangeAccessPolicyRequest struct {
 	AppId        string `json:"app_id" validate:"number"`
 	AccessPolicy string `json:"access_policy" validate:"access_policy"`
