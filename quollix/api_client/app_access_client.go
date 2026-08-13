@@ -20,8 +20,10 @@ var noRedirectHttpClient = &http.Client{
 	CheckRedirect: func(request *http.Request, via []*http.Request) error { return http.ErrUseLastResponse },
 }
 
-func (c *AppAccessClient) GetSecret() (string, error) {
-	body, err := c.quollix.Parent.DoRequest(api.Paths.BackendSecret, nil)
+func (c *AppAccessClient) GetSecret(appName string) (string, error) {
+	body, err := c.quollix.Parent.DoRequest(api.Paths.BackendSecret, api.AppAccessSecretRequest{
+		AppName: appName,
+	})
 	if err != nil {
 		return "", err
 	}
