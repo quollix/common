@@ -52,6 +52,7 @@ type AdminAppDto struct {
 
 type NonAdminAppDto struct {
 	Maintainer, AppName string
+	IsPublic            bool `json:"is_public"`
 }
 
 type AppAccessSecretRequest struct {
