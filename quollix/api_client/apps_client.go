@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	api "github.com/quollix/common/quollix/api"
+	u "github.com/quollix/common/utils"
 
 	"github.com/quollix/common/store"
 )
@@ -65,6 +66,24 @@ func (c *QuollixAppsClient) ListInstalledForAdmin() ([]api.AdminAppDto, error) {
 		return nil, err
 	}
 	return apps, nil
+}
+
+func (c *QuollixAppsClient) GetInstalledAppSecret(appName, secretName string) (string, error) {
+	apps, err := c.ListInstalledForAdmin()
+	if err != nil {
+		return "", err
+	}
+	for _, app := range apps {
+		if app.AppName != appName {
+			continue
+		}
+		secret, ok := app.Secrets[secretName]
+		if !ok || secret == "" {
+			return "", u.Logger.NewError("installed app secret not found", "app", appName, "secret", secretName)
+		}
+		return secret, nil
+	}
+	return "", u.Logger.NewError("installed app not found", "app", appName)
 }
 
 func (c *QuollixAppsClient) ListInstalledForNonAdmin() ([]api.NonAdminAppDto, error) {
