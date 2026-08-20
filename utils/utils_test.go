@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -59,4 +60,28 @@ func TestFormatRelativeDuration(t *testing.T) {
 			assert.Equal(t, testCase.expected, FormatRelativeDuration(now, testCase.target))
 		})
 	}
+}
+
+func TestPromptUserReadsOneLinePerPrompt(t *testing.T) {
+	oldStdin := os.Stdin
+	readFile, writeFile, err := os.Pipe()
+	assert.Nil(t, err)
+	defer func() {
+		os.Stdin = oldStdin
+		Close(readFile)
+		Close(writeFile)
+	}()
+	os.Stdin = readFile
+	_, err = writeFile.WriteString("1\nDELETE\n")
+	assert.Nil(t, err)
+	assert.Nil(t, writeFile.Close())
+
+	osWrapper := &OsWrapperImpl{}
+	firstValue, err := osWrapper.PromptUser("first: ")
+	assert.Nil(t, err)
+	secondValue, err := osWrapper.PromptUser("second: ")
+	assert.Nil(t, err)
+
+	assert.Equal(t, "1", firstValue)
+	assert.Equal(t, "DELETE", secondValue)
 }

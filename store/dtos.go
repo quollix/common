@@ -30,6 +30,7 @@ type EmailString struct {
 }
 
 type LeanVersionDto struct {
+	VersionId         int       `json:"version_id"`
 	Name              string    `json:"name"`
 	CreationTimestamp time.Time `json:"creation_timestamp"`
 	SizeInBytes       int64     `json:"size_in_bytes"`
@@ -41,6 +42,7 @@ type ChangePasswordForm struct {
 }
 
 type Version struct {
+	VersionId                        int `json:"version_id"`
 	Maintainer, AppName, VersionName string
 	Content, Signature               []byte
 	MaintainerPublicKeyRaw           []byte
@@ -96,12 +98,11 @@ type VersionTree struct {
 	VersionName string `validate:"version_name"`
 }
 
+type VersionID struct {
+	VersionId int `json:"version_id"`
+}
+
 type AppTree struct {
 	Maintainer string `validate:"default"`
 	AppName    string `validate:"default"`
-}
-
-type AppAndVersion struct {
-	AppName     string `validate:"default"`
-	VersionName string `validate:"version_name"`
 }

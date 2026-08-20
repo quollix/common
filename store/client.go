@@ -32,6 +32,7 @@ var (
 	VersionDeletePath = VersionPath + "/delete"
 	GetVersionsPath   = VersionPath + "/list"
 	DownloadPath      = VersionPath + "/download"
+	DownloadByIDPath  = VersionPath + "/download-by-id"
 
 	AppPath         = ApiPrefix + "/apps"
 	AppCreationPath = AppPath + "/create"
@@ -52,10 +53,12 @@ type AppStoreClient interface {
 	CreateApp(appName string) error
 	SearchForApps(maintainerSearchTerm, appSearchTerm string, showUnofficialApps bool) ([]AppWithLatestVersion, error)
 	ListOwnApps() ([]string, error)
-	UploadVersion(appName, versionName string, creationTimestamp time.Time, content, signature []byte) error
+	UploadVersionAndReturnCreatedVersion(appName, versionName string, creationTimestamp time.Time, content, signature []byte) (*CreatedVersionResponse, error)
+	// Deprecated: use DownloadVersionByID.
 	DownloadVersion(userName, appName, versionName string) (*Version, error)
+	DownloadVersionByID(versionId int) (*Version, error)
 	ListVersions(userName, appName string) ([]LeanVersionDto, error)
-	DeleteVersion(appName, versionName string) error
+	DeleteVersionByID(versionId int) error
 	DeleteApp(appName string) error
 	ChangePassword(oldPassword, newPassword string) error
 	Logout() error
@@ -73,7 +76,7 @@ type AppStoreClientImpl struct {
 	Validator validation.VersionValidator
 }
 
-func (h *AppStoreClientImpl) UploadVersion(appName, versionName string, creationTimestamp time.Time, content, signature []byte) error {
+func (h *AppStoreClientImpl) UploadVersionAndReturnCreatedVersion(appName, versionName string, creationTimestamp time.Time, content, signature []byte) (*CreatedVersionResponse, error) {
 	versionUploads := VersionUploadDto{
 		AppName:           appName,
 		Version:           versionName,
@@ -83,10 +86,9 @@ func (h *AppStoreClientImpl) UploadVersion(appName, versionName string, creation
 	}
 	result, err := h.Parent.DoRequest(VersionUploadPath, versionUploads)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_ = result
-	return nil
+	return u.UnpackResponse[CreatedVersionResponse](result)
 }
 
 func (h *AppStoreClientImpl) Register(maintainer, password, email string, maintainerPublicKeyRaw []byte) error {
@@ -167,12 +169,32 @@ func (h *AppStoreClientImpl) ListOwnApps() ([]string, error) {
 	return *apps, nil
 }
 
+// Deprecated: use DownloadVersionByID.
 func (h *AppStoreClientImpl) DownloadVersion(userName, appName, versionName string) (*Version, error) {
 	result, err := h.Parent.DoRequest(DownloadPath, VersionTree{
 		Maintainer:  userName,
 		AppName:     appName,
 		VersionName: versionName,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	version, err := u.UnpackResponse[Version](result)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.Validator.Validate(version.Content, version.Maintainer, version.AppName)
+	if err != nil {
+		return nil, fmt.Errorf("version validation failed: %w", err)
+	}
+
+	return version, nil
+}
+
+func (h *AppStoreClientImpl) DownloadVersionByID(versionId int) (*Version, error) {
+	result, err := h.Parent.DoRequest(DownloadByIDPath, VersionID{VersionId: versionId})
 	if err != nil {
 		return nil, err
 	}
@@ -207,11 +229,8 @@ func (h *AppStoreClientImpl) ListVersions(userName, appName string) ([]LeanVersi
 	return *versions, nil
 }
 
-func (h *AppStoreClientImpl) DeleteVersion(appName, versionName string) error {
-	_, err := h.Parent.DoRequest(VersionDeletePath, AppAndVersion{
-		AppName:     appName,
-		VersionName: versionName,
-	})
+func (h *AppStoreClientImpl) DeleteVersionByID(versionId int) error {
+	_, err := h.Parent.DoRequest(VersionDeletePath, VersionID{VersionId: versionId})
 	return err
 }
 

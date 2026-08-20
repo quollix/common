@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -117,13 +116,25 @@ func (o *OsWrapperImpl) Now() time.Time {
 
 func (o *OsWrapperImpl) PromptUser(prompt string) (string, error) {
 	fmt.Print(prompt)
-	reader := bufio.NewReader(os.Stdin)
-	value, err := reader.ReadString('\n')
-	if err != nil && !errors.Is(err, io.EOF) && !errors.Is(err, os.ErrClosed) {
-		return "", Logger.NewError(err.Error())
+	var value strings.Builder
+	buffer := make([]byte, 1)
+	for {
+		readCount, err := os.Stdin.Read(buffer)
+		if readCount > 0 {
+			if buffer[0] == '\n' {
+				break
+			}
+			value.WriteByte(buffer[0])
+		}
+		if err != nil {
+			if errors.Is(err, io.EOF) || errors.Is(err, os.ErrClosed) {
+				break
+			}
+			return "", Logger.NewError(err.Error())
+		}
 	}
 
-	return strings.TrimSpace(value), nil
+	return strings.TrimSpace(value.String()), nil
 }
 
 func (o *OsWrapperImpl) Sleep(duration time.Duration) {
