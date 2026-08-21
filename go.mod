@@ -3,16 +3,16 @@ module github.com/quollix/common
 go 1.26.5
 
 require (
-	github.com/chromedp/cdproto v0.0.0-20260714215040-dc233986426f
+	github.com/chromedp/cdproto v0.0.0-20260804232424-e85f50dbfd32
 	github.com/chromedp/chromedp v0.16.0
-	github.com/compose-spec/compose-go/v2 v2.13.0
+	github.com/compose-spec/compose-go/v2 v2.14.0
 	github.com/golang-migrate/migrate/v4 v4.19.1
 	github.com/lib/pq v1.12.3
-	github.com/quollix/deepstack v1.2.0
-	github.com/quollix/taskrunner v1.2.3
+	github.com/quollix/deepstack v1.2.2
+	github.com/quollix/taskrunner v1.2.6
 	github.com/spf13/cobra v1.10.2
-	github.com/stretchr/testify v1.11.1
-	golang.org/x/crypto v0.54.0
+	github.com/stretchr/testify v1.12.1
+	golang.org/x/crypto v0.55.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
@@ -22,13 +22,12 @@ require (
 	github.com/brunoga/deep v1.3.1 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.2.0 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/go-connections v0.7.0 // indirect
+	github.com/docker/go-connections v0.8.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/go-json-experiment/json v0.0.0-20260623181947-01eb4420fa68 // indirect
+	github.com/go-json-experiment/json v0.0.0-20260820222146-c27c302e5fc3 // indirect
 	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect
@@ -50,10 +49,9 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/rs/zerolog v1.34.0 // indirect
-	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
-	github.com/sirupsen/logrus v1.9.4 // indirect
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 // indirect
+	github.com/sirupsen/logrus v1.10.1 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
 	github.com/vektra/mockery/v3 v3.7.0 // indirect
@@ -61,15 +59,15 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.6 // indirect
 	golang.org/x/exp v0.0.0-20260212183809-81e46e3db34a // indirect
-	golang.org/x/mod v0.37.0 // indirect
+	golang.org/x/mod v0.38.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/term v0.45.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
-	golang.org/x/tools v0.47.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
+	golang.org/x/tools v0.48.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )
 
