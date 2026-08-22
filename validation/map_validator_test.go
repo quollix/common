@@ -109,18 +109,45 @@ func TestValidateComposeFile_HappyPath(t *testing.T) {
 	}
 
 	sv.EXPECT().ValidateServiceName("app").Return(nil)
-	sv.EXPECT().ValidateServiceKeys("app", service).Return(nil)
+	sv.EXPECT().ValidateServiceKeys(service).Return(nil)
 	sv.EXPECT().ValidateImage("app", service).Return(nil)
 	sv.EXPECT().ValidateContainerName("app", service, "maint", "app").Return(nil)
-	sv.EXPECT().ValidatePorts("app", service).Return(nil)
+	sv.EXPECT().ValidatePorts(service).Return(nil)
 	sv.EXPECT().ValidateServiceVolumes("maint", "app", "app", service).Return(nil)
-	sv.EXPECT().ValidateDeploySection("app", service).Return(nil)
+	sv.EXPECT().ValidateDeploySection(service).Return(nil)
 	sv.EXPECT().ValidateLabels("app", "app", service).Return(nil)
-	sv.EXPECT().ValidateNoTzEnvironment("app", service).Return(nil)
+	sv.EXPECT().ValidateNoTzEnvironment(service).Return(nil)
 	cv.EXPECT().ValidateVolumeMappings(compose).Return(nil)
 	cv.EXPECT().ValidateServiceReferences(compose).Return(nil)
 
 	assert.Nil(t, f.ValidateComposeMap(compose, "maint", "app"))
+}
+
+func TestValidateComposeMap_AddsServiceContextToServiceValidatorError(t *testing.T) {
+	sv := NewServiceValidatorMock(t)
+	defer sv.AssertExpectations(t)
+	f := &ComposeValidatorImpl{ServiceValidator: sv}
+
+	service := map[string]any{
+		"image":          "repo/app:1.0.0",
+		"container_name": "maint_app_app",
+		"ports":          []any{"80:8080"},
+	}
+	compose := map[string]any{
+		"services": map[string]any{
+			"app": service,
+		},
+	}
+
+	sv.EXPECT().ValidateServiceName("app").Return(nil)
+	sv.EXPECT().ValidateServiceKeys(service).Return(nil)
+	sv.EXPECT().ValidateImage("app", service).Return(nil)
+	sv.EXPECT().ValidateContainerName("app", service, "maint", "app").Return(nil)
+	sv.EXPECT().ValidatePorts(service).Return(u.Logger.NewError(exposingDefaultPortIsForbidden, PortField, "80"))
+
+	err := f.ValidateComposeMap(compose, "maint", "app")
+
+	deepstack.AssertDeepStackError(t, err, exposingDefaultPortIsForbidden, ServiceField, "app", PortField, "80")
 }
 
 func TestValidateComposePlaceholders_WithoutPlaceholders(t *testing.T) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	u "github.com/quollix/common/utils"
@@ -12,19 +13,20 @@ import (
 var (
 	allowedServiceKeys        = u.MapOf("image", "container_name", "ports", "volumes", "depends_on", "environment", "deploy", "tmpfs", "tty", "user", "command", "entrypoint", "labels")
 	portsForbiddenToBeExposed = u.MapOf("22", "53", "80", "443")
+	imageDigestRegex          = regexp.MustCompile(`^(sha256:[a-fA-F0-9]{64}|sha384:[a-fA-F0-9]{96}|sha512:[a-fA-F0-9]{128})$`)
 )
 
 type ServiceValidator interface {
-	ValidateServiceKeys(serviceName string, serviceMap map[string]any) error
+	ValidateServiceKeys(serviceMap map[string]any) error
 	ValidateImage(serviceName string, serviceMap map[string]any) error
 	ValidateContainerName(serviceName string, serviceMap map[string]any, maintainerName, appName string) error
-	ValidatePorts(serviceName string, serviceMap map[string]any) error
+	ValidatePorts(serviceMap map[string]any) error
 	ValidateServiceVolumes(maintainerName, appName, serviceName string, serviceMap map[string]any) error
-	ValidateDeploySection(serviceName string, serviceMap map[string]any) error
+	ValidateDeploySection(serviceMap map[string]any) error
 	ValidateServiceName(name string) error
 	ValidateUrl(url string) bool
 	ValidateLabels(appName string, serviceName string, serviceMap map[string]any) error
-	ValidateNoTzEnvironment(serviceName string, serviceMap map[string]any) error
+	ValidateNoTzEnvironment(serviceMap map[string]any) error
 }
 
 type ServiceValidatorImpl struct{}
@@ -43,7 +45,7 @@ var (
 	volumeTargetMustNotBeRoot           = "volume target must not be root"
 )
 
-func (s *ServiceValidatorImpl) ValidateNoTzEnvironment(serviceName string, serviceMap map[string]any) error {
+func (s *ServiceValidatorImpl) ValidateNoTzEnvironment(serviceMap map[string]any) error {
 	environmentValue, hasEnvironment := serviceMap["environment"]
 	if !hasEnvironment || environmentValue == nil {
 		return nil
@@ -57,16 +59,16 @@ func (s *ServiceValidatorImpl) ValidateNoTzEnvironment(serviceName string, servi
 				continue
 			}
 			if entryString == "TZ" || strings.HasPrefix(entryString, "TZ=") {
-				return u.Logger.NewError(tzEnvironmentVariableIsForbidden, ServiceField, serviceName)
+				return u.Logger.NewError(tzEnvironmentVariableIsForbidden)
 			}
 		}
 	case map[string]any:
 		if _, hasTz := typedEnvironment["TZ"]; hasTz {
-			return u.Logger.NewError(tzEnvironmentVariableIsForbidden, ServiceField, serviceName)
+			return u.Logger.NewError(tzEnvironmentVariableIsForbidden)
 		}
 	case map[any]any:
 		if _, hasTz := typedEnvironment["TZ"]; hasTz {
-			return u.Logger.NewError(tzEnvironmentVariableIsForbidden, ServiceField, serviceName)
+			return u.Logger.NewError(tzEnvironmentVariableIsForbidden)
 		}
 	}
 
@@ -115,11 +117,11 @@ func (s *ServiceValidatorImpl) ValidateServiceName(serviceName string) error {
 	return nil
 }
 
-func (s *ServiceValidatorImpl) ValidateServiceKeys(serviceName string, serviceMap map[string]any) error {
+func (s *ServiceValidatorImpl) ValidateServiceKeys(serviceMap map[string]any) error {
 	for key := range serviceMap {
 		_, ok := allowedServiceKeys[key]
 		if !ok {
-			return u.Logger.NewError(notAllowedKeyInService, ServiceField, serviceName, KeyField, key)
+			return u.Logger.NewError(notAllowedKeyInService, KeyField, key)
 		}
 	}
 	return nil
@@ -134,14 +136,27 @@ func (s *ServiceValidatorImpl) ValidateImage(serviceName string, serviceMap map[
 	if !ok {
 		return u.Logger.NewError("invalid 'image' in service", ServiceField, serviceName)
 	}
-	parts := strings.Split(imgString, ":")
-	if len(parts) < 2 {
+	tag, digest, hasDigest, hasTag := parseImageTagAndDigest(imgString)
+	if !hasTag {
 		return u.Logger.NewError(mustSetTheDockerImageTag, ServiceField, serviceName, ImageField, imgString)
 	}
-	if parts[1] == "latest" {
+	if tag == "latest" {
 		return u.Logger.NewError(notAllowedLatestDockerImageTag, ServiceField, serviceName, ImageField, imgString)
 	}
+	if hasDigest && !imageDigestRegex.MatchString(digest) {
+		return u.Logger.NewError(invalidDockerImageDigest, ServiceField, serviceName, ImageField, imgString)
+	}
 	return nil
+}
+
+func parseImageTagAndDigest(image string) (string, string, bool, bool) {
+	imageWithoutDigest, digest, hasDigest := strings.Cut(image, "@")
+	lastSlash := strings.LastIndex(imageWithoutDigest, "/")
+	tagSeparator := strings.LastIndex(imageWithoutDigest, ":")
+	if tagSeparator <= lastSlash || tagSeparator == len(imageWithoutDigest)-1 {
+		return "", digest, hasDigest, false
+	}
+	return imageWithoutDigest[tagSeparator+1:], digest, hasDigest, true
 }
 
 func (s *ServiceValidatorImpl) ValidateContainerName(serviceName string, serviceMap map[string]any, maintainerName, appName string) error {
@@ -175,25 +190,25 @@ func (s *ServiceValidatorImpl) ValidateContainerName(serviceName string, service
 	return nil
 }
 
-func (s *ServiceValidatorImpl) ValidatePorts(serviceName string, serviceMap map[string]any) error {
+func (s *ServiceValidatorImpl) ValidatePorts(serviceMap map[string]any) error {
 	ports, ok := serviceMap["ports"]
 	if !ok {
 		return nil
 	}
 	portsList, ok := ports.([]any)
 	if !ok {
-		return u.Logger.NewError("invalid 'ports' in service", ServiceField, serviceName)
+		return u.Logger.NewError("invalid 'ports' in service")
 	}
 	for _, port := range portsList {
 		portString, ok := port.(string)
 		if !ok {
-			return u.Logger.NewError("invalid 'ports' in service", ServiceField, serviceName)
+			return u.Logger.NewError("invalid 'ports' in service")
 		}
 		fields := strings.Split(portString, ":")
 		portExposedOnHost := fields[0]
 		_, isPortForbidden := portsForbiddenToBeExposed[portExposedOnHost]
 		if isPortForbidden {
-			return u.Logger.NewError(exposingDefaultPortIsForbidden, ServiceField, serviceName, PortField, portExposedOnHost)
+			return u.Logger.NewError(exposingDefaultPortIsForbidden, PortField, portExposedOnHost)
 		}
 	}
 	return nil
@@ -291,18 +306,18 @@ func validateNamedVolumeName(maintainerName, appName, volumeName string) error {
 	return nil
 }
 
-func (f *ServiceValidatorImpl) ValidateDeploySection(serviceName string, serviceMap map[string]any) error {
+func (f *ServiceValidatorImpl) ValidateDeploySection(serviceMap map[string]any) error {
 	deploy, has := serviceMap["deploy"]
 	if !has {
 		return nil
 	}
 	deployMap, ok := deploy.(map[string]any)
 	if !ok {
-		return fmt.Errorf("'deploy' keyword in service '%s' must be a map", serviceName)
+		return fmt.Errorf("'deploy' keyword in service must be a map")
 	}
 	for subKey := range deployMap {
 		if subKey != "resources" {
-			return u.Logger.NewError(deployKeywordMustOnlyContainResources, ServiceField, serviceName, KeyField, subKey)
+			return u.Logger.NewError(deployKeywordMustOnlyContainResources, KeyField, subKey)
 		}
 	}
 	resourcesMap, ok := deployMap["resources"].(map[string]any)
@@ -315,10 +330,10 @@ func (f *ServiceValidatorImpl) ValidateDeploySection(serviceName string, service
 	}
 	reservationsMap, ok := reservations.(map[string]any)
 	if !ok {
-		return fmt.Errorf("'reservations' in 'resources' of service '%s' must be a map", serviceName)
+		return fmt.Errorf("'reservations' in 'resources' of service must be a map")
 	}
 	if _, ok = reservationsMap["devices"]; ok {
-		return u.Logger.NewError(devicesKeywordIsForbidden, ServiceField, serviceName)
+		return u.Logger.NewError(devicesKeywordIsForbidden)
 	}
 	return nil
 }

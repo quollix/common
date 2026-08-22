@@ -131,7 +131,7 @@ func (f *ComposeValidatorImpl) validateService(maintainerName, appName, serviceN
 	if !ok {
 		return fmt.Errorf("invalid service definition for service %v", serviceName)
 	}
-	if err := f.ServiceValidator.ValidateServiceKeys(serviceName, serviceMap); err != nil {
+	if err := f.ServiceValidator.ValidateServiceKeys(serviceMap); err != nil {
 		return err
 	}
 	if err := f.ServiceValidator.ValidateImage(serviceName, serviceMap); err != nil {
@@ -140,19 +140,19 @@ func (f *ComposeValidatorImpl) validateService(maintainerName, appName, serviceN
 	if err := f.ServiceValidator.ValidateContainerName(serviceName, serviceMap, maintainerName, appName); err != nil {
 		return err
 	}
-	if err := f.ServiceValidator.ValidatePorts(serviceName, serviceMap); err != nil {
+	if err := f.ServiceValidator.ValidatePorts(serviceMap); err != nil {
 		return err
 	}
 	if err := f.ServiceValidator.ValidateServiceVolumes(maintainerName, appName, serviceName, serviceMap); err != nil {
 		return err
 	}
-	if err := f.ServiceValidator.ValidateDeploySection(serviceName, serviceMap); err != nil {
+	if err := f.ServiceValidator.ValidateDeploySection(serviceMap); err != nil {
 		return err
 	}
 	if err := f.ServiceValidator.ValidateLabels(appName, serviceName, serviceMap); err != nil {
 		return err
 	}
-	if err := f.ServiceValidator.ValidateNoTzEnvironment(serviceName, serviceMap); err != nil {
+	if err := f.ServiceValidator.ValidateNoTzEnvironment(serviceMap); err != nil {
 		return err
 	}
 	return nil

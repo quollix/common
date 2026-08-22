@@ -26,6 +26,7 @@ var (
 	unexpectedUnderscoreCountContainer    = "unexpected number of underscores in container_name"
 	mustSetTheDockerImageTag              = "the image tag must be set, like 'gitea/gitea:10.5'"
 	notAllowedLatestDockerImageTag        = "the 'latest' tag is forbidden, to get reproducible apps, only fixed tags with specific software version should be used"
+	invalidDockerImageDigest              = "the image digest must be a valid OCI digest"
 	SystemAppNamesAreAlreadyReserved      = "system app names are not allowed"
 	devicesKeywordIsForbidden             = "'devices' keyword is not allowed"
 	deployKeywordMustOnlyContainResources = "'deploy' keyword must only contain 'resources' keyword"

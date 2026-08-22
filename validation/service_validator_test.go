@@ -11,15 +11,15 @@ import (
 
 func TestValidateServiceKeys(t *testing.T) {
 	serviceValidator := &ServiceValidatorImpl{}
-	err := serviceValidator.ValidateServiceKeys("svc", map[string]any{
+	err := serviceValidator.ValidateServiceKeys(map[string]any{
 		"image": "repo:1.0.0",
 	})
 	assert.Nil(t, err)
 
-	err = serviceValidator.ValidateServiceKeys("svc", map[string]any{"privileged": true})
+	err = serviceValidator.ValidateServiceKeys(map[string]any{"privileged": true})
 	assert.Equal(t, notAllowedKeyInService, u.ExtractError(err))
 
-	err = serviceValidator.ValidateServiceKeys("svc", map[string]any{
+	err = serviceValidator.ValidateServiceKeys(map[string]any{
 		"image": "repo:1.0.0",
 		"gpus":  "all",
 	})
@@ -28,20 +28,41 @@ func TestValidateServiceKeys(t *testing.T) {
 
 func TestValidateImage(t *testing.T) {
 	serviceValidator := &ServiceValidatorImpl{}
-	err := serviceValidator.ValidateImage("svc", map[string]any{"image": "repo:1.2.3"})
-	assert.Nil(t, err)
+	validSha256Digest := "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	validSha512Digest := "sha512:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	testCases := []struct {
+		name          string
+		serviceMap    map[string]any
+		expectedError string
+	}{
+		{"tag", map[string]any{"image": "repo:1.2.3"}, ""},
+		{"tag with sha256 digest", map[string]any{"image": "repo:1.2.3@" + validSha256Digest}, ""},
+		{"repository path with sha256 digest", map[string]any{"image": "repo/app:1.2.3@" + validSha256Digest}, ""},
+		{"repository path with sha512 digest", map[string]any{"image": "repo/app:1.2.3@" + validSha512Digest}, ""},
+		{"localhost registry with sha256 digest", map[string]any{"image": "localhost:5000/repo/app:1.2.3@" + validSha256Digest}, ""},
+		{"uppercase sha256 digest", map[string]any{"image": "repo/app:1.2.3@sha256:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}, ""},
+		{"latest tag", map[string]any{"image": "repo:latest"}, notAllowedLatestDockerImageTag},
+		{"latest tag with digest", map[string]any{"image": "repo:latest@" + validSha256Digest}, notAllowedLatestDockerImageTag},
+		{"missing tag", map[string]any{"image": "repo"}, mustSetTheDockerImageTag},
+		{"missing tag with digest", map[string]any{"image": "repo@" + validSha256Digest}, mustSetTheDockerImageTag},
+		{"invalid sha256 digest", map[string]any{"image": "repo:1.2.3@sha256:not-a-real-digest"}, invalidDockerImageDigest},
+		{"unsupported digest algorithm", map[string]any{"image": "repo:1.2.3@md5:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, invalidDockerImageDigest},
+		{"short sha256 digest", map[string]any{"image": "repo:1.2.3@sha256:aaaaaaaa"}, invalidDockerImageDigest},
+		{"empty digest", map[string]any{"image": "repo:1.2.3@"}, invalidDockerImageDigest},
+		{"image is not string", map[string]any{"image": map[string]any{"name": "repo:1.2.3"}}, "invalid 'image' in service"},
+		{"missing image", map[string]any{}, mustSetImageKey},
+	}
 
-	err = serviceValidator.ValidateImage("svc", map[string]any{"image": "repo:latest"})
-	deepstack.AssertDeepStackError(t, err, notAllowedLatestDockerImageTag, ServiceField, "svc", ImageField, "repo:latest")
-
-	err = serviceValidator.ValidateImage("svc", map[string]any{"image": "repo"})
-	deepstack.AssertDeepStackError(t, err, mustSetTheDockerImageTag, ServiceField, "svc", ImageField, "repo")
-
-	err = serviceValidator.ValidateImage("svc", map[string]any{"image": map[string]any{"name": "repo:1.2.3"}})
-	deepstack.AssertDeepStackError(t, err, "invalid 'image' in service", ServiceField, "svc")
-
-	err = serviceValidator.ValidateImage("svc", map[string]any{})
-	deepstack.AssertDeepStackError(t, err, mustSetImageKey, ServiceField, "svc")
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := serviceValidator.ValidateImage("svc", testCase.serviceMap)
+			if testCase.expectedError == "" {
+				assert.Nil(t, err)
+				return
+			}
+			assert.Equal(t, testCase.expectedError, u.ExtractError(err))
+		})
+	}
 }
 
 func TestValidateContainerName(t *testing.T) {
@@ -73,19 +94,19 @@ func TestValidateContainerName(t *testing.T) {
 func TestValidatePorts(t *testing.T) {
 	svc := &ServiceValidatorImpl{}
 
-	assert.Nil(t, svc.ValidatePorts("svc", map[string]any{}))
-	assert.Nil(t, svc.ValidatePorts("svc", map[string]any{"ports": []any{"8080:80"}}))
-	assert.Nil(t, svc.ValidatePorts("svc", map[string]any{"ports": []any{"123"}}))
+	assert.Nil(t, svc.ValidatePorts(map[string]any{}))
+	assert.Nil(t, svc.ValidatePorts(map[string]any{"ports": []any{"8080:80"}}))
+	assert.Nil(t, svc.ValidatePorts(map[string]any{"ports": []any{"123"}}))
 
 	forbidden := []string{"22", "53", "80", "443"}
 	for _, p := range forbidden {
 		t.Run("forbidden_"+p, func(t *testing.T) {
-			err := svc.ValidatePorts("svc", map[string]any{"ports": []any{p + ":9999"}})
-			deepstack.AssertDeepStackError(t, err, exposingDefaultPortIsForbidden, ServiceField, "svc", PortField, p)
+			err := svc.ValidatePorts(map[string]any{"ports": []any{p + ":9999"}})
+			deepstack.AssertDeepStackError(t, err, exposingDefaultPortIsForbidden, PortField, p)
 		})
 	}
-	deepstack.AssertDeepStackError(t, svc.ValidatePorts("svc", map[string]any{"ports": "22"}), "invalid 'ports' in service", ServiceField, "svc")
-	deepstack.AssertDeepStackError(t, svc.ValidatePorts("svc", map[string]any{"ports": []any{22}}), "invalid 'ports' in service", ServiceField, "svc")
+	deepstack.AssertDeepStackError(t, svc.ValidatePorts(map[string]any{"ports": "22"}), "invalid 'ports' in service")
+	deepstack.AssertDeepStackError(t, svc.ValidatePorts(map[string]any{"ports": []any{22}}), "invalid 'ports' in service")
 }
 
 func TestValidateServiceVolumes(t *testing.T) {
@@ -149,20 +170,20 @@ func TestValidateServiceVolumes_InvalidVolumeSuffixRegex(t *testing.T) {
 
 func TestValidateDeploySection(t *testing.T) {
 	serviceValidator := &ServiceValidatorImpl{}
-	err := serviceValidator.ValidateDeploySection("svc", map[string]any{})
+	err := serviceValidator.ValidateDeploySection(map[string]any{})
 	assert.Nil(t, err)
 
-	err = serviceValidator.ValidateDeploySection("svc", map[string]any{
+	err = serviceValidator.ValidateDeploySection(map[string]any{
 		"deploy": map[string]any{"resources": map[string]any{}},
 	})
 	assert.Nil(t, err)
 
-	err = serviceValidator.ValidateDeploySection("svc", map[string]any{
+	err = serviceValidator.ValidateDeploySection(map[string]any{
 		"deploy": map[string]any{"replicas": 1},
 	})
-	deepstack.AssertDeepStackError(t, err, deployKeywordMustOnlyContainResources, ServiceField, "svc", KeyField, "replicas")
+	deepstack.AssertDeepStackError(t, err, deployKeywordMustOnlyContainResources, KeyField, "replicas")
 
-	err = serviceValidator.ValidateDeploySection("svc", map[string]any{
+	err = serviceValidator.ValidateDeploySection(map[string]any{
 		"deploy": map[string]any{
 			"resources": map[string]any{
 				"reservations": map[string]any{
@@ -171,7 +192,7 @@ func TestValidateDeploySection(t *testing.T) {
 			},
 		},
 	})
-	deepstack.AssertDeepStackError(t, err, devicesKeywordIsForbidden, ServiceField, "svc")
+	deepstack.AssertDeepStackError(t, err, devicesKeywordIsForbidden)
 }
 
 func TestServiceNameValidation(t *testing.T) {
@@ -248,7 +269,7 @@ func TestValidateLabels(t *testing.T) {
 
 func TestValidateNoTzEnvironment_AllowsWhenNotPresent(t *testing.T) {
 	serviceValidator := &ServiceValidatorImpl{}
-	err := serviceValidator.ValidateNoTzEnvironment("svc", map[string]any{
+	err := serviceValidator.ValidateNoTzEnvironment(map[string]any{
 		"environment": []any{"A=1"},
 	})
 	assert.Nil(t, err)
@@ -256,16 +277,16 @@ func TestValidateNoTzEnvironment_AllowsWhenNotPresent(t *testing.T) {
 
 func TestValidateNoTzEnvironment_DeniesListStyle(t *testing.T) {
 	serviceValidator := &ServiceValidatorImpl{}
-	err := serviceValidator.ValidateNoTzEnvironment("svc", map[string]any{
+	err := serviceValidator.ValidateNoTzEnvironment(map[string]any{
 		"environment": []any{"A=1", "TZ=Europe/Berlin"},
 	})
-	deepstack.AssertDeepStackError(t, err, tzEnvironmentVariableIsForbidden, ServiceField, "svc")
+	deepstack.AssertDeepStackError(t, err, tzEnvironmentVariableIsForbidden)
 }
 
 func TestValidateNoTzEnvironment_DeniesMapStyle(t *testing.T) {
 	serviceValidator := &ServiceValidatorImpl{}
-	err := serviceValidator.ValidateNoTzEnvironment("svc", map[string]any{
+	err := serviceValidator.ValidateNoTzEnvironment(map[string]any{
 		"environment": map[string]any{"TZ": "Europe/Berlin"},
 	})
-	deepstack.AssertDeepStackError(t, err, tzEnvironmentVariableIsForbidden, ServiceField, "svc")
+	deepstack.AssertDeepStackError(t, err, tzEnvironmentVariableIsForbidden)
 }
