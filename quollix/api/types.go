@@ -44,13 +44,14 @@ type RestoredVersionInfo struct {
 }
 
 type BackupInfo struct {
-	BackupId                string
-	Maintainer              string
-	AppName                 string
-	VersionName             string
-	Description             string
-	ApplicationVersion      string
-	BackupCreationTimestamp time.Time
+	BackupId                 string
+	Maintainer               string
+	AppName                  string
+	VersionName              string
+	VersionCreationTimestamp time.Time
+	Description              string
+	ApplicationVersion       string
+	BackupCreationTimestamp  time.Time
 }
 
 type User struct {
