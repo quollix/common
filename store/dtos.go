@@ -64,6 +64,7 @@ type LoginCredentials struct {
 type AppWithLatestVersion struct {
 	Maintainer                     string
 	AppName                        string
+	LatestVersionId                int
 	LatestVersionName              string
 	LatestVersionCreationTimestamp time.Time
 }

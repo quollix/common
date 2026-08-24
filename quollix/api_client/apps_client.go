@@ -13,12 +13,8 @@ type QuollixAppsClient struct {
 	quollix *QuollixClient
 }
 
-func (c *QuollixAppsClient) InstallFromStore(maintainer, appName, version string) error {
-	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendStoreVersionsInstall, store.VersionTree{
-		Maintainer:  maintainer,
-		AppName:     appName,
-		VersionName: version,
-	})
+func (c *QuollixAppsClient) InstallFromStoreVersion(versionId int) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendStoreVersionsInstall, store.VersionID{VersionId: versionId})
 	return err
 }
 
@@ -196,10 +192,6 @@ func (c *QuollixAppsClient) GetCurrentOperations() ([]string, bool, error) {
 	return out.Operations, out.IsOngoing, nil
 }
 
-func (c *QuollixAppsClient) DownloadVersion(maintainer, appName, versionName string) (*api.BinaryFile, error) {
-	return c.quollix.downloadBinaryFile(api.Paths.BackendStoreVersionsDownload, store.VersionTree{
-		Maintainer:  maintainer,
-		AppName:     appName,
-		VersionName: versionName,
-	})
+func (c *QuollixAppsClient) DownloadStoreVersion(versionId int) (*api.BinaryFile, error) {
+	return c.quollix.downloadBinaryFile(api.Paths.BackendStoreVersionsDownload, store.VersionID{VersionId: versionId})
 }
