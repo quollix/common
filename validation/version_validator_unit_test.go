@@ -78,14 +78,14 @@ func TestValidate_StrictLicenseNoticeMissingReturnsError(t *testing.T) {
 	deps.versionValidator.RequireLicenseNotice = true
 
 	err := deps.versionValidator.Validate([]byte("services: {}\n"), "maintainer", "app")
-	assert.Equal(t, MissingAppDefinitionLicenseNotice, u.ExtractError(err))
+	assert.Equal(t, "app definition must start with: # This file is licensed under the 0BSD License: https://opensource.org/license/0bsd\\n", u.ExtractError(err))
 }
 
 func TestValidate_StrictLicenseNoticeSuccess(t *testing.T) {
 	deps := setupTestDependencies(t)
 	defer assertAllExpectations(t, deps)
 	deps.versionValidator.RequireLicenseNotice = true
-	composeFileBytes := []byte(AppDefinitionLicenseNotice + "\nservices: {}\n")
+	composeFileBytes := []byte("# This file is licensed under the 0BSD License: https://opensource.org/license/0bsd\nservices: {}\n")
 	expectedComposeMap := map[string]any{"services": map[string]any{}}
 
 	deps.composeValidatorMock.EXPECT().ValidateComposePlaceholders(composeFileBytes).Return(nil)

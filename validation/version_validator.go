@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	AppDefinitionLicenseNotice        = "# This file is licensed under the 0BSD License: https://opensource.org/license/0bsd\\n"
-	MissingAppDefinitionLicenseNotice = "app definition must start with: " + AppDefinitionLicenseNotice
+	appDefinitionLicenseNoticePrefix  = "# This file is licensed under the 0BSD License: https://opensource.org/license/0bsd"
+	AppDefinitionLicenseNotice        = appDefinitionLicenseNoticePrefix + "\n"
+	appDefinitionLicenseNoticeMessage = appDefinitionLicenseNoticePrefix + "\\n"
+	MissingAppDefinitionLicenseNotice = "app definition must start with: " + appDefinitionLicenseNoticeMessage
 )
 
 type VersionValidator interface {
