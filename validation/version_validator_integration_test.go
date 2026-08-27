@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	versionValidator = NewVersionValidator()
+	versionValidator = NewVersionValidator(false)
 
 	appName        = "gitea"
 	maintainerName = "samplemaintainer"

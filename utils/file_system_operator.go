@@ -1,18 +1,8 @@
 package utils
 
 import (
-	"context"
-
-	"github.com/compose-spec/compose-go/v2/loader"
-	"github.com/compose-spec/compose-go/v2/types"
 	"gopkg.in/yaml.v3"
 )
-
-const composeConfigConsistencyCheckFailed = "compose config consistency check failed"
-
-type ComposeSyntaxChecker interface {
-	CheckDockerComposeSyntax(composeFileBytes []byte) error
-}
 
 type SimpleFile struct {
 	Name  string
@@ -22,7 +12,6 @@ type SimpleFile struct {
 type FileSystemOperator interface {
 	ListFiles(dir string) ([]SimpleFile, error)
 	ReadYamlFile(dir string) (map[string]any, error)
-	CheckDockerComposeSyntax(composeFileBytes []byte) error
 }
 
 type FileSystemOperatorImpl struct {
@@ -61,28 +50,4 @@ func (f *FileSystemOperatorImpl) ReadYamlFile(path string) (map[string]any, erro
 	}
 
 	return yamlMap, nil
-}
-
-func (f *FileSystemOperatorImpl) CheckDockerComposeSyntax(composeFileBytes []byte) error {
-	configDetails := types.ConfigDetails{
-		ConfigFiles: []types.ConfigFile{
-			{
-				Filename: "docker-compose.yml",
-				Content:  composeFileBytes,
-			},
-		},
-	}
-
-	_, err := loader.LoadModelWithContext(context.Background(), configDetails, func(opts *loader.Options) {
-		opts.SkipInterpolation = true
-		opts.SkipInclude = true
-		opts.SkipExtends = true
-		opts.SkipResolveEnvironment = true
-		opts.ResolvePaths = false
-		opts.SetProjectName("compose_check", true)
-	})
-	if err != nil {
-		return Logger.NewError(composeConfigConsistencyCheckFailed, "compose_error_message", err.Error())
-	}
-	return nil
 }

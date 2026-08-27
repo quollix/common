@@ -9,18 +9,21 @@ import (
 )
 
 type testDependencies struct {
-	versionValidator     VersionValidator
-	composeCheckerMock   *u.ComposeSyntaxCheckerMock
-	composeValidatorMock *ComposeValidatorMock
+	versionValidator           *VersionValidatorImpl
+	composeValidatorMock       *ComposeValidatorMock
+	composeSyntaxValidatorMock *ComposeSyntaxValidatorMock
 }
 
 func setupTestDependencies(t *testing.T) *testDependencies {
-	composeChecker := u.NewComposeSyntaxCheckerMock(t)
 	composeValidator := NewComposeValidatorMock(t)
+	composeSyntaxValidator := NewComposeSyntaxValidatorMock(t)
 	return &testDependencies{
-		versionValidator:     NewVersionValidatorWithDependencies(composeChecker, composeValidator),
-		composeCheckerMock:   composeChecker,
-		composeValidatorMock: composeValidator,
+		versionValidator: &VersionValidatorImpl{
+			ComposeValidator:       composeValidator,
+			ComposeSyntaxValidator: composeSyntaxValidator,
+		},
+		composeValidatorMock:       composeValidator,
+		composeSyntaxValidatorMock: composeSyntaxValidator,
 	}
 }
 
@@ -63,7 +66,31 @@ func TestValidate_SuccessfulValidation(t *testing.T) {
 
 	deps.composeValidatorMock.EXPECT().ValidateComposePlaceholders(composeFileBytes).Return(nil)
 	deps.composeValidatorMock.EXPECT().ValidateComposeMap(expectedComposeMap, "maintainer", "app").Return(nil)
-	deps.composeCheckerMock.EXPECT().CheckDockerComposeSyntax(composeFileBytes).Return(nil)
+	deps.composeSyntaxValidatorMock.EXPECT().ValidateComposeSyntax(composeFileBytes).Return(nil)
+
+	err := deps.versionValidator.Validate(composeFileBytes, "maintainer", "app")
+	assert.Nil(t, err)
+}
+
+func TestValidate_StrictLicenseNoticeMissingReturnsError(t *testing.T) {
+	deps := setupTestDependencies(t)
+	defer assertAllExpectations(t, deps)
+	deps.versionValidator.RequireLicenseNotice = true
+
+	err := deps.versionValidator.Validate([]byte("services: {}\n"), "maintainer", "app")
+	assert.Equal(t, MissingAppDefinitionLicenseNotice, u.ExtractError(err))
+}
+
+func TestValidate_StrictLicenseNoticeSuccess(t *testing.T) {
+	deps := setupTestDependencies(t)
+	defer assertAllExpectations(t, deps)
+	deps.versionValidator.RequireLicenseNotice = true
+	composeFileBytes := []byte(AppDefinitionLicenseNotice + "\nservices: {}\n")
+	expectedComposeMap := map[string]any{"services": map[string]any{}}
+
+	deps.composeValidatorMock.EXPECT().ValidateComposePlaceholders(composeFileBytes).Return(nil)
+	deps.composeValidatorMock.EXPECT().ValidateComposeMap(expectedComposeMap, "maintainer", "app").Return(nil)
+	deps.composeSyntaxValidatorMock.EXPECT().ValidateComposeSyntax(composeFileBytes).Return(nil)
 
 	err := deps.versionValidator.Validate(composeFileBytes, "maintainer", "app")
 	assert.Nil(t, err)

@@ -42,38 +42,6 @@ func TestListFiles(t *testing.T) {
 	assert.True(t, files[1].IsDir)
 }
 
-func TestDockerComposeCheck_Success(t *testing.T) {
-	fileSystemOperator := newFileSystemOperatorForTest()
-	err := fileSystemOperator.CheckDockerComposeSyntax([]byte(`
-services:
-  app:
-    image: nginx:1.27
-`))
-	assert.Nil(t, err)
-}
-
-func TestDockerComposeCheck_Fail(t *testing.T) {
-	fileSystemOperator := newFileSystemOperatorForTest()
-	err := fileSystemOperator.CheckDockerComposeSyntax([]byte("hello"))
-	assert.Equal(t, composeConfigConsistencyCheckFailed, ExtractError(err))
-}
-
-// We want that validaiton works completely in-memory, so we assert that the system does not try to access these non-existing files
-func TestDockerComposeCheck_DoesNotLoadReferencedFiles(t *testing.T) {
-	fileSystemOperator := newFileSystemOperatorForTest()
-	err := fileSystemOperator.CheckDockerComposeSyntax([]byte(`
-include:
-  - missing-compose.yml
-services:
-  app:
-    extends:
-      file: missing-base.yml
-      service: base
-    image: nginx:1.27
-`))
-	assert.Nil(t, err)
-}
-
 func TestNotExistingFile(t *testing.T) {
 	fileSystemOperator := newFileSystemOperatorForTest()
 	_, err := fileSystemOperator.ReadYamlFile(fileReadingDir + "/non-existing-file.yml")

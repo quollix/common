@@ -32,14 +32,12 @@ type ComposeValidator interface {
 type ComposeValidatorImpl struct {
 	ServiceValidator            ServiceValidator
 	ComposeConsistencyValidator ComposeConsistencyValidator
-	FileSystemOperator          u.FileSystemOperator
 }
 
-func NewComposeValidator(serviceValidator ServiceValidator, fileSystemOperator u.FileSystemOperator) ComposeValidator {
+func NewComposeValidator(serviceValidator ServiceValidator) ComposeValidator {
 	return &ComposeValidatorImpl{
 		ServiceValidator:            serviceValidator,
 		ComposeConsistencyValidator: &ComposeConsistencyValidatorImpl{},
-		FileSystemOperator:          fileSystemOperator,
 	}
 }
 

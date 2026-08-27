@@ -1,8 +1,15 @@
 package validation
 
 import (
+	"bytes"
+
 	u "github.com/quollix/common/utils"
 	"gopkg.in/yaml.v3"
+)
+
+const (
+	AppDefinitionLicenseNotice        = "# This file is licensed under the 0BSD License: https://opensource.org/license/0bsd\\n"
+	MissingAppDefinitionLicenseNotice = "app definition must start with: " + AppDefinitionLicenseNotice
 )
 
 type VersionValidator interface {
@@ -10,23 +17,18 @@ type VersionValidator interface {
 }
 
 type VersionValidatorImpl struct {
-	FileSystemService u.ComposeSyntaxChecker
-	ComposeValidator  ComposeValidator
+	ComposeValidator       ComposeValidator
+	ComposeSyntaxValidator ComposeSyntaxValidator
+	RequireLicenseNotice   bool
 }
 
-func NewVersionValidator() VersionValidator {
-	osWrapper := &u.OsWrapperImpl{}
-	fileSystemOperator := u.NewFileSystemOperator(osWrapper)
-	return NewVersionValidatorWithDependencies(
-		fileSystemOperator,
-		NewComposeValidator(&ServiceValidatorImpl{}, fileSystemOperator),
-	)
-}
-
-func NewVersionValidatorWithDependencies(fileSystemService u.ComposeSyntaxChecker, composeValidator ComposeValidator) VersionValidator {
+// NewVersionValidator creates a validator; requireLicenseNotice=false is deprecated and kept only for compatibility.
+func NewVersionValidator(requireLicenseNotice bool) VersionValidator {
+	composeValidator := NewComposeValidator(&ServiceValidatorImpl{})
 	return &VersionValidatorImpl{
-		FileSystemService: fileSystemService,
-		ComposeValidator:  composeValidator,
+		ComposeValidator:       composeValidator,
+		ComposeSyntaxValidator: NewComposeSyntaxValidator(),
+		RequireLicenseNotice:   requireLicenseNotice,
 	}
 }
 
@@ -37,6 +39,10 @@ func (v *VersionValidatorImpl) Validate(composeFileBytes []byte, maintainerName,
 
 	if u.IsSystemApp(appName) {
 		return u.Logger.NewError(SystemAppNamesAreAlreadyReserved)
+	}
+
+	if err := v.validateLicenseNotice(composeFileBytes); err != nil {
+		return err
 	}
 
 	err := v.runValidations(composeFileBytes, maintainerName, appName)
@@ -57,6 +63,13 @@ func validateMaintainerAndAppName(maintainerName, appName string) error {
 	return nil
 }
 
+func (v *VersionValidatorImpl) validateLicenseNotice(composeFileBytes []byte) error {
+	if !v.RequireLicenseNotice || bytes.HasPrefix(composeFileBytes, []byte(AppDefinitionLicenseNotice)) {
+		return nil
+	}
+	return u.Logger.NewError(MissingAppDefinitionLicenseNotice)
+}
+
 func (v *VersionValidatorImpl) runValidations(composeFileBytes []byte, maintainerName string, appName string) error {
 	var mapData map[string]any
 	if err := yaml.Unmarshal(composeFileBytes, &mapData); err != nil {
@@ -71,7 +84,7 @@ func (v *VersionValidatorImpl) runValidations(composeFileBytes []byte, maintaine
 		return err
 	}
 
-	if err := v.FileSystemService.CheckDockerComposeSyntax(composeFileBytes); err != nil {
+	if err := v.ComposeSyntaxValidator.ValidateComposeSyntax(composeFileBytes); err != nil {
 		return err
 	}
 	return nil

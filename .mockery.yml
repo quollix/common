@@ -5,6 +5,10 @@ packages:
         config:
           filename: compose_validator_mock.go
           structname: ComposeValidatorMock
+      ComposeSyntaxValidator:
+        config:
+          filename: compose_syntax_validator_mock.go
+          structname: ComposeSyntaxValidatorMock
       ServiceValidator:
         config:
           filename: service_validator_mock.go
@@ -19,10 +23,6 @@ packages:
           structname: VersionValidatorMock
   github.com/quollix/common/utils:
     interfaces:
-      ComposeSyntaxChecker:
-        config:
-          filename: compose_syntax_checker_mock.go
-          structname: ComposeSyntaxCheckerMock
       OsWrapper:
         config:
           filename: os_wrapper_mock.go
