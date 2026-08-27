@@ -46,3 +46,23 @@ func TestGetInitialAdminCredentials_RejectsInvalidEnvCredentials(t *testing.T) {
 	assert.Equal(t, "", password)
 	assert.Equal(t, "env variable is not valid", u.ExtractError(err))
 }
+
+func TestExtractGeneratedInitialAdminCredentials_UsesDocumentedSearchText(t *testing.T) {
+	logs := `{"level":"info","message":"INITIAL_ADMIN_PASSWORD environment variable is not set, generated random initial admin password","username":"quollix","password":"secret-password"}`
+
+	username, password, err := ExtractGeneratedInitialAdminCredentials(logs)
+
+	assert.Nil(t, err)
+	assert.Equal(t, "quollix", username)
+	assert.Equal(t, "secret-password", password)
+}
+
+func TestExtractGeneratedInitialAdminCredentials_IgnoresOtherPasswordFields(t *testing.T) {
+	logs := `{"level":"info","message":"some other log line","password":"wrong-password"}`
+
+	username, password, err := ExtractGeneratedInitialAdminCredentials(logs)
+
+	assert.Equal(t, "", username)
+	assert.Equal(t, "", password)
+	assert.Equal(t, "password log line was not found", u.ExtractError(err))
+}
