@@ -48,7 +48,7 @@ func TestGetInitialAdminCredentials_RejectsInvalidEnvCredentials(t *testing.T) {
 }
 
 func TestExtractGeneratedInitialAdminCredentials_UsesDocumentedSearchText(t *testing.T) {
-	logs := `{"level":"info","message":"INITIAL_ADMIN_PASSWORD environment variable is not set, generated random initial admin password","username":"quollix","password":"secret-password"}`
+	logs := `{"level":"info","msg":"INITIAL_ADMIN_PASSWORD environment variable is not set, generated random initial admin password","username":"quollix","password":"secret-password"}`
 
 	username, password, err := ExtractGeneratedInitialAdminCredentials(logs)
 
@@ -58,7 +58,7 @@ func TestExtractGeneratedInitialAdminCredentials_UsesDocumentedSearchText(t *tes
 }
 
 func TestExtractGeneratedInitialAdminCredentials_IgnoresOtherPasswordFields(t *testing.T) {
-	logs := `{"level":"info","message":"some other log line","password":"wrong-password"}`
+	logs := `{"level":"info","msg":"some other log line","password":"wrong-password"}`
 
 	username, password, err := ExtractGeneratedInitialAdminCredentials(logs)
 

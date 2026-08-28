@@ -126,7 +126,7 @@ func extractGeneratedInitialAdminCredentialsFromLine(line string) (string, strin
 		return "", "", false
 	}
 
-	if jsonStringField(fields, "message") != generatedInitialAdminPasswordLogMessage {
+	if jsonStringField(fields, "msg") != generatedInitialAdminPasswordLogMessage {
 		return "", "", false
 	}
 
