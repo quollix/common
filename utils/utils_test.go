@@ -85,3 +85,45 @@ func TestPromptUserReadsOneLinePerPrompt(t *testing.T) {
 	assert.Equal(t, "1", firstValue)
 	assert.Equal(t, "DELETE", secondValue)
 }
+
+func TestPromptSecretReadsFromNonTerminalStdin(t *testing.T) {
+	oldStdin := os.Stdin
+	readFile, writeFile, err := os.Pipe()
+	assert.Nil(t, err)
+	defer func() {
+		os.Stdin = oldStdin
+		Close(readFile)
+		Close(writeFile)
+	}()
+	os.Stdin = readFile
+	_, err = writeFile.WriteString("secret\n")
+	assert.Nil(t, err)
+	assert.Nil(t, writeFile.Close())
+
+	osWrapper := &OsWrapperImpl{}
+	value, err := osWrapper.PromptSecret("secret: ")
+
+	assert.Nil(t, err)
+	assert.Equal(t, "secret", value)
+}
+
+func TestPromptSecretFailsForEmptyNonTerminalStdin(t *testing.T) {
+	oldStdin := os.Stdin
+	readFile, writeFile, err := os.Pipe()
+	assert.Nil(t, err)
+	defer func() {
+		os.Stdin = oldStdin
+		Close(readFile)
+		Close(writeFile)
+	}()
+	os.Stdin = readFile
+	_, err = writeFile.WriteString("\n")
+	assert.Nil(t, err)
+	assert.Nil(t, writeFile.Close())
+
+	osWrapper := &OsWrapperImpl{}
+	value, err := osWrapper.PromptSecret("secret: ")
+
+	assert.Equal(t, "", value)
+	assert.NotNil(t, err)
+}

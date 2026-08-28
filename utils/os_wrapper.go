@@ -120,6 +120,10 @@ func (o *OsWrapperImpl) Now() time.Time {
 
 func (o *OsWrapperImpl) PromptUser(prompt string) (string, error) {
 	fmt.Print(prompt)
+	return o.readPromptValue()
+}
+
+func (o *OsWrapperImpl) readPromptValue() (string, error) {
 	var value strings.Builder
 	buffer := make([]byte, 1)
 	for {
@@ -143,17 +147,22 @@ func (o *OsWrapperImpl) PromptUser(prompt string) (string, error) {
 
 func (o *OsWrapperImpl) PromptSecret(prompt string) (string, error) {
 	fmt.Print(prompt)
+	var value string
 	if !term.IsTerminal(syscall.Stdin) {
-		return "", Logger.NewError("cannot read secret from non-terminal stdin")
+		promptValue, err := o.readPromptValue()
+		if err != nil {
+			return "", err
+		}
+		value = promptValue
+	} else {
+		rawValue, err := term.ReadPassword(syscall.Stdin)
+		fmt.Println()
+		if err != nil {
+			return "", Logger.NewError(err.Error())
+		}
+		value = strings.TrimSpace(string(rawValue))
 	}
 
-	rawValue, err := term.ReadPassword(syscall.Stdin)
-	fmt.Println()
-	if err != nil {
-		return "", Logger.NewError(err.Error())
-	}
-
-	value := strings.TrimSpace(string(rawValue))
 	if value == "" {
 		return "", Logger.NewError("secret cannot be empty")
 	}
