@@ -8,7 +8,10 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
+
+	"golang.org/x/term"
 )
 
 type OsWrapper interface {
@@ -23,6 +26,7 @@ type OsWrapper interface {
 	AllocateLocalhostPort() (string, error)
 	Now() time.Time
 	PromptUser(prompt string) (string, error)
+	PromptSecret(prompt string) (string, error)
 	Sleep(duration time.Duration)
 }
 
@@ -135,6 +139,25 @@ func (o *OsWrapperImpl) PromptUser(prompt string) (string, error) {
 	}
 
 	return strings.TrimSpace(value.String()), nil
+}
+
+func (o *OsWrapperImpl) PromptSecret(prompt string) (string, error) {
+	fmt.Print(prompt)
+	if !term.IsTerminal(syscall.Stdin) {
+		return "", Logger.NewError("cannot read secret from non-terminal stdin")
+	}
+
+	rawValue, err := term.ReadPassword(syscall.Stdin)
+	fmt.Println()
+	if err != nil {
+		return "", Logger.NewError(err.Error())
+	}
+
+	value := strings.TrimSpace(string(rawValue))
+	if value == "" {
+		return "", Logger.NewError("secret cannot be empty")
+	}
+	return value, nil
 }
 
 func (o *OsWrapperImpl) Sleep(duration time.Duration) {
