@@ -77,6 +77,22 @@ type MaintainerAndApp struct {
 	AppName    string `json:"app_name" validate:"default"`
 }
 
+type MaintainerPublicKeyDto struct {
+	Name          string    `json:"name"`
+	PublicKey     string    `json:"public_key"`
+	Fingerprint   string    `json:"fingerprint"`
+	LastUpdatedAt time.Time `json:"last_updated_at"`
+}
+
+type MaintainerPublicKeyCreateRequest struct {
+	Name      string `json:"name" validate:"default"`
+	PublicKey string `json:"public_key" validate:"ssh_public_key"`
+}
+
+type MaintainerPublicKeyDeleteRequest struct {
+	Name string `json:"name" validate:"default"`
+}
+
 type SingleBool struct {
 	Value bool `json:"value"`
 }

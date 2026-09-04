@@ -47,6 +47,7 @@ const (
 	FieldOidcClaim      = "oidc_claim"
 	FieldCredential     = "credential"
 	FieldComposeSecret  = "compose_secret_name"
+	FieldSshPublicKey   = "ssh_public_key"
 	FieldEmailSubject   = "email_subject"
 	FieldEmailBody      = "email_body"
 )
@@ -74,6 +75,7 @@ var ValidationMap = map[string]ValidationFunc{
 	FieldOidcClaim:      NewOpaqueStringValidator(true, 1024),
 	FieldCredential:     NewOpaqueStringValidator(false, 1024),
 	FieldComposeSecret:  NewGenericRegex(`^SECRET_[A-Z0-9_]{1,128}$`, "Invalid input. The content of the field %s must be a valid compose secret name."),
+	FieldSshPublicKey:   NewGenericRegex(`^ssh-ed25519 [A-Za-z0-9+/=]{68}( [A-Za-z0-9._@+-]{1,64})?$`, "Invalid input. The content of the field %s must be a valid ed25519 SSH public key."),
 	FieldEmailSubject:   NewEmailTextValidator(false, 120),
 	FieldEmailBody:      NewEmailTextValidator(true, 5000),
 }

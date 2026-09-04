@@ -88,6 +88,11 @@ type PathsType struct {
 	BackendStoreVersionsList        string
 	BackendStoreReloadPublishedApps string
 
+	BackendAppMaintainers       string
+	BackendAppMaintainersList   string
+	BackendAppMaintainersAdd    string
+	BackendAppMaintainersDelete string
+
 	BackendBackups                  string
 	BackendBackedUpAppsPage         string
 	BackendBackupsPage              string
@@ -265,6 +270,11 @@ var Paths = func() PathsType {
 	p.BackendStoreVersionsDownload = p.BackendStoreVersions + "/download"
 	p.BackendStoreVersionsList = p.BackendStoreVersions + "/list"
 	p.BackendStoreReloadPublishedApps = p.BackendStore + "/reload-local-store-apps"
+
+	p.BackendAppMaintainers = p.BackendApi + "/app-maintainers"
+	p.BackendAppMaintainersList = p.BackendAppMaintainers + "/list"
+	p.BackendAppMaintainersAdd = p.BackendAppMaintainers + "/add"
+	p.BackendAppMaintainersDelete = p.BackendAppMaintainers + "/delete"
 
 	p.BackendBackups = p.BackendApi + "/backups"
 	p.BackendBackedUpAppsPage = p.BackendApi + "/backed-up-apps-page"

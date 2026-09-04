@@ -21,20 +21,21 @@ var httpClient = &http.Client{
 type QuollixClient struct {
 	Parent *u.ComponentClient
 
-	Auth          *AuthClient
-	Users         *UsersClient
-	Apps          *QuollixAppsClient
-	Backups       *QuollixBackupsClient
-	Settings      *QuollixSettingsClient
-	Maintenance   *QuollixMaintenanceClient
-	Certificates  *QuollixCertificatesClient
-	Frontend      *QuollixFrontendClient
-	Test          *QuollixTestClient
-	AppAccess     *AppAccessClient
-	Email         *EmailClient
-	Groups        *GroupsClient
-	OidcProviders *OidcAuthProvidersClient
-	OidcClients   *OidcRelyingPartiesClient
+	Auth           *AuthClient
+	Users          *UsersClient
+	Apps           *QuollixAppsClient
+	Backups        *QuollixBackupsClient
+	Settings       *QuollixSettingsClient
+	Maintenance    *QuollixMaintenanceClient
+	Certificates   *QuollixCertificatesClient
+	Frontend       *QuollixFrontendClient
+	Test           *QuollixTestClient
+	AppAccess      *AppAccessClient
+	AppMaintainers *AppMaintainersClient
+	Email          *EmailClient
+	Groups         *GroupsClient
+	OidcProviders  *OidcAuthProvidersClient
+	OidcClients    *OidcRelyingPartiesClient
 }
 
 func NewQuollixClient() *QuollixClient {
@@ -63,6 +64,7 @@ func NewQuollixClientWithParent(parent *u.ComponentClient) *QuollixClient {
 	client.Frontend = &QuollixFrontendClient{quollix: client}
 	client.Test = &QuollixTestClient{quollix: client}
 	client.AppAccess = &AppAccessClient{quollix: client}
+	client.AppMaintainers = &AppMaintainersClient{quollix: client}
 	client.Email = &EmailClient{quollix: client}
 	client.Groups = &GroupsClient{quollix: client}
 	client.OidcProviders = &OidcAuthProvidersClient{quollix: client}

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/quollix/common/assert"
+	u "github.com/quollix/common/utils"
 )
 
 const (
@@ -130,6 +131,19 @@ func TestValidateComposeSecretName(t *testing.T) {
 		{strings.Repeat("A", 136), true},
 	}
 	assertCases(t, FieldComposeSecret, cases)
+}
+
+func TestValidateSshPublicKey(t *testing.T) {
+	cases := []testCaseType{
+		{u.LocalTestingPublicKeyOpenSSH, false},
+		{u.OtherLocalTestingPublicKeyOpenSSH, false},
+		{u.LocalTestingPublicKeyOpenSSH + " admin@test", false},
+		{"ssh-rsa AAAAC3NzaC1lZDI1NTE5AAAAIF70YNMkl2Wedmpo2UszvIrXJqr/pgCpevysNjjwtUig", true},
+		{"ssh-ed25519 invalid", true},
+		{u.LocalTestingPublicKeyOpenSSH + "\n", true},
+		{"", true},
+	}
+	assertCases(t, FieldSshPublicKey, cases)
 }
 
 func TestValidateEmail(t *testing.T) {
