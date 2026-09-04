@@ -9,6 +9,7 @@ import (
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
+	u "github.com/quollix/common/utils"
 )
 
 func (p *Page) Close() error {
@@ -47,13 +48,16 @@ func (p *Page) Reload() error {
 }
 
 func (p *Page) WaitLoad() error {
-	return chromedp.Run(p.ctx, chromedp.WaitReady("body", chromedp.ByQuery))
+	if err := chromedp.Run(p.ctx, chromedp.WaitReady("body", chromedp.ByQuery)); err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	return nil
 }
 
 func (p *Page) Info() (*PageInfo, error) {
 	var currentURL string
 	if err := chromedp.Run(p.ctx, chromedp.Location(&currentURL)); err != nil {
-		return nil, err
+		return nil, u.Logger.NewError(err.Error())
 	}
 	return &PageInfo{URL: currentURL}, nil
 }
@@ -75,7 +79,7 @@ func (p *Page) WaitOpen() func() (*Page, error) {
 		page := &Page{browser: p.browser, ctx: ctx, cancel: cancel}
 		if err := chromedp.Run(ctx); err != nil {
 			cancel()
-			return nil, err
+			return nil, u.Logger.NewError(err.Error())
 		}
 		return page, nil
 	}
@@ -122,20 +126,26 @@ func (p *Page) Has(selector string) (bool, *Element, error) {
 }
 
 func (p *Page) SetCookie(cookie *http.Cookie, baseURL string) error {
-	return chromedp.Run(p.ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+	if err := chromedp.Run(p.ctx, chromedp.ActionFunc(func(ctx context.Context) error {
 		return network.SetCookie(cookie.Name, cookie.Value).
 			WithURL(baseURL).
 			WithPath(cookiePath(cookie)).
 			WithSecure(cookie.Secure).
 			WithHTTPOnly(cookie.HttpOnly).
 			Do(ctx)
-	}))
+	})); err != nil {
+		return u.Logger.NewError(err.Error(), "url", baseURL)
+	}
+	return nil
 }
 
 func (p *Page) ClearCookies() error {
-	return chromedp.Run(p.ctx, chromedp.ActionFunc(func(ctx context.Context) error {
+	if err := chromedp.Run(p.ctx, chromedp.ActionFunc(func(ctx context.Context) error {
 		return network.ClearBrowserCookies().Do(ctx)
-	}))
+	})); err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	return nil
 }
 
 func (p *Page) Cookies(url string) ([]*network.Cookie, error) {
@@ -145,15 +155,24 @@ func (p *Page) Cookies(url string) ([]*network.Cookie, error) {
 		cookies, err = network.GetCookies().WithURLs([]string{url}).Do(ctx)
 		return err
 	}))
-	return cookies, err
+	if err != nil {
+		return nil, u.Logger.NewError(err.Error(), "url", url)
+	}
+	return cookies, nil
 }
 
 func (p *Page) count(expr string) (int, error) {
 	var count int
 	err := chromedp.Run(p.ctx, chromedp.EvaluateAsDevTools(fmt.Sprintf(`(() => %s.length)()`, expr), &count))
-	return count, err
+	if err != nil {
+		return 0, u.Logger.NewError(err.Error())
+	}
+	return count, nil
 }
 
 func (p *Page) runAndWaitReady(actions ...chromedp.Action) error {
-	return chromedp.Run(p.ctx, append(actions, chromedp.WaitReady("body", chromedp.ByQuery))...)
+	if err := chromedp.Run(p.ctx, append(actions, chromedp.WaitReady("body", chromedp.ByQuery))...); err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	return nil
 }

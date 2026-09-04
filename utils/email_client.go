@@ -17,6 +17,14 @@ type EmailConfig struct {
 	IsEnabled            bool   `json:"is_enabled"`
 }
 
+var SampleEmailConfig = EmailConfig{ // #nosec G101 (CWE-798): Potential hardcoded credentials
+	SMTPHost:             "smtp.test.example.com",
+	SMTPPort:             "2525",
+	FromEmailAddress:     "sender@test.example.com",
+	EmailAccountUsername: "test-smtp-user",
+	EmailAccountPassword: "test-smtp-password",
+}
+
 type EmailClient interface {
 	SendEmail(emailConfig *EmailConfig, to, subject, body string) error
 	CheckEmailServerConnection(emailConfig *EmailConfig) error

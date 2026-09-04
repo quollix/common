@@ -16,7 +16,7 @@ func (p *Page) WaitElementWithin(selector string, timeout time.Duration) (*Eleme
 	err := u.EventuallyWithTimeout(timeout, 50*time.Millisecond, func() error {
 		foundElement, err := p.Element(selector)
 		if err != nil {
-			return u.Logger.NewError(err.Error())
+			return err
 		}
 		element = foundElement
 		return nil
@@ -36,7 +36,7 @@ func (p *Page) WaitElementMatchingTextWithin(selector, textPattern string, timeo
 	err := u.EventuallyWithTimeout(timeout, 50*time.Millisecond, func() error {
 		foundElement, err := p.ElementMatchingText(selector, textPattern)
 		if err != nil {
-			return u.Logger.NewError(err.Error())
+			return err
 		}
 		element = foundElement
 		return nil
@@ -57,7 +57,7 @@ func (p *Page) ClickElementWithin(selector string, timeout time.Duration) error 
 		return err
 	}
 	if err := element.Click(); err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func (p *Page) ClickElementMatchingTextWithin(selector, textPattern string, time
 		return err
 	}
 	if err := element.Click(); err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	return nil
 }
@@ -83,10 +83,10 @@ func (p *Page) SetInputValue(selector, value string) error {
 		return err
 	}
 	if err := input.SelectAllText(); err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	if err := input.Input(value); err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	return nil
 }
@@ -97,14 +97,14 @@ func (p *Page) TypeInputValue(selector, value string) error {
 		return err
 	}
 	if err := input.SelectAllText(); err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	if err := input.TypeText(value); err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	inputValue, err := input.Property("value")
 	if err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	if inputValue.String() != value {
 		return u.Logger.NewError("input value mismatch", "selector", selector, "expected", value, "actual", inputValue.String())
@@ -119,13 +119,13 @@ func (p *Page) SetCheckboxChecked(selector string, checked bool) error {
 	}
 	current, err := checkbox.Property("checked")
 	if err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	if current.Bool() == checked {
 		return nil
 	}
 	if err := checkbox.Click(); err != nil {
-		return u.Logger.NewError(err.Error())
+		return err
 	}
 	return nil
 }
@@ -133,11 +133,11 @@ func (p *Page) SetCheckboxChecked(selector string, checked bool) error {
 func (p *Page) BodyText() (string, error) {
 	body, err := p.Element("body")
 	if err != nil {
-		return "", u.Logger.NewError(err.Error())
+		return "", err
 	}
 	text, err := body.Text()
 	if err != nil {
-		return "", u.Logger.NewError(err.Error())
+		return "", err
 	}
 	return strings.TrimSpace(text), nil
 }

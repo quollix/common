@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/quollix/taskrunner"
@@ -73,6 +74,7 @@ func CollectBuildTags(dir string) ([]string, error) {
 	for tag := range tagSet {
 		tags = append(tags, tag)
 	}
+	slices.Sort(tags)
 	return tags, nil
 }
 
@@ -112,4 +114,21 @@ func BuildWholeGoProject(Tr *taskrunner.TaskRunner, directory string) {
 	command := fmt.Sprintf("go test -count=1 -tags=%s -run=NO_SUCH_TEST ./...", commaSeparatedBuildTags)
 	Tr.Log.Info("checking whether the entire production and test code can be compiled without running tests...")
 	Tr.Cmd().Dir(directory).Run("%s", command)
+}
+
+// BuildWholeGoProjectByBuildTag detects compile errors for the default package set and each build tag separately.
+func BuildWholeGoProjectByBuildTag(Tr *taskrunner.TaskRunner, directory string) {
+	buildTags, err := CollectBuildTags(directory)
+	if err != nil {
+		Tr.Log.Error("Error collecting build tags: %v", err)
+		os.Exit(1)
+	}
+
+	Tr.Log.Info("checking whether the Go module can be compiled without build tags...")
+	Tr.Cmd().Dir(directory).Run("go test -count=1 -run=NO_SUCH_TEST ./...")
+
+	for _, buildTag := range buildTags {
+		Tr.Log.Info("checking whether the Go module can be compiled with build tag '%s'...", buildTag)
+		Tr.Cmd().Dir(directory).Run("go test -count=1 -tags=%s -run=NO_SUCH_TEST ./...", buildTag)
+	}
 }

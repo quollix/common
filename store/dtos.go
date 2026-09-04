@@ -17,6 +17,10 @@ type UserNameString struct {
 	Value string `json:"value" validate:"number"`
 }
 
+type MaintainerNameString struct {
+	Value string `json:"value" validate:"default"`
+}
+
 type AppNameString struct {
 	Value string `json:"value" validate:"default"`
 }
@@ -30,10 +34,12 @@ type EmailString struct {
 }
 
 type LeanVersionDto struct {
-	VersionId         int       `json:"version_id"`
-	Name              string    `json:"name"`
-	CreationTimestamp time.Time `json:"creation_timestamp"`
-	SizeInBytes       int64     `json:"size_in_bytes"`
+	VersionId             int       `json:"version_id"`
+	Name                  string    `json:"name"`
+	CreationTimestamp     time.Time `json:"creation_timestamp"`
+	SizeInBytes           int64     `json:"size_in_bytes"`
+	IsMigrationCheckpoint bool      `json:"is_migration_checkpoint"`
+	DownloadCount         int64     `json:"download_count"`
 }
 
 type ChangePasswordForm struct {
@@ -47,13 +53,46 @@ type Version struct {
 	Content, Signature               []byte
 	MaintainerPublicKeyRaw           []byte
 	VersionCreationTimestamp         time.Time
+	IsMigrationCheckpoint            bool
 }
 
-type RegistrationForm struct {
-	User                   string `validate:"default"`
-	Password               string `validate:"password"`
-	Email                  string `validate:"email"`
-	MaintainerPublicKeyRaw []byte
+type SetupInitialPasswordForm struct {
+	Token    string `validate:"secret"`
+	Password string `validate:"password"`
+}
+
+type AdminMaintainerCreateForm struct {
+	Name               string `validate:"default"`
+	Email              string `validate:"email"`
+	PublicKeyRaw       []byte
+	PublicKeySignature []byte
+}
+
+type AdminMaintainerCreateResponse struct {
+	SetupToken     string
+	ExpirationDate time.Time
+}
+
+type MaintainerPublicKeyRecord struct {
+	Maintainer         string
+	PublicKeyRaw       []byte
+	PublicKeySignature []byte
+}
+
+type AdminEmailRequest struct {
+	Subject string `validate:"email_subject"`
+	Body    string `validate:"email_body"`
+}
+
+type AdminEmailSendResult struct {
+	SentCount   int
+	FailedCount int
+	Failures    []AdminEmailSendFailure
+}
+
+type AdminEmailSendFailure struct {
+	Recipient string
+	Error     string
 }
 
 type LoginCredentials struct {
@@ -101,6 +140,22 @@ type VersionTree struct {
 
 type VersionID struct {
 	VersionId int `json:"version_id"`
+}
+
+type NextVersionForUpdateRequest struct {
+	Maintainer                      string `validate:"default"`
+	AppName                         string `validate:"default"`
+	CurrentVersionCreationTimestamp time.Time
+}
+
+type NextVersionForUpdateResponse struct {
+	UpdateAvailable bool
+	Version         *Version
+}
+
+type VersionMigrationCheckpointRequest struct {
+	VersionId             int `json:"version_id"`
+	IsMigrationCheckpoint bool
 }
 
 type AppTree struct {

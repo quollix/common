@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	u "github.com/quollix/common/utils"
 )
 
 type Browser struct {
@@ -72,7 +74,7 @@ func findElements(page *Page, parentExpression, selector string) ([]*Element, er
 func findElementMatchingText(page *Page, selector string, textPattern string) (*Element, error) {
 	pattern, err := regexp.Compile(textPattern)
 	if err != nil {
-		return nil, err
+		return nil, u.Logger.NewError(err.Error(), "text", textPattern)
 	}
 
 	elements, err := findElements(page, "document", selector)
@@ -88,7 +90,7 @@ func findElementMatchingText(page *Page, selector string, textPattern string) (*
 			return element, nil
 		}
 	}
-	return nil, fmt.Errorf("element not found")
+	return nil, u.Logger.NewError("element not found")
 }
 
 func hasElement(page *Page, parentExpression, selector string) (bool, *Element, error) {

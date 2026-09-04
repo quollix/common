@@ -389,3 +389,35 @@ func TestCredential(t *testing.T) {
 
 	assertCases(t, FieldCredential, cases)
 }
+
+func TestEmailSubject(t *testing.T) {
+	cases := []testCaseType{
+		{"Privacy policy updated", false},
+		{"See https://quollix.org/legal/new-policy.md", false},
+		{strings.Repeat("a", 120), false},
+
+		{"", true},
+		{"   ", true},
+		{"Privacy\npolicy updated", true},
+		{"Policy updated – please read", true},
+		{strings.Repeat("a", 121), true},
+	}
+
+	assertCases(t, FieldEmailSubject, cases)
+}
+
+func TestEmailBody(t *testing.T) {
+	cases := []testCaseType{
+		{"Privacy policy updated.\nSee https://quollix.org/legal/new-policy.md", false},
+		{"Line one\r\nLine two", false},
+		{"Indented\tline", false},
+		{strings.Repeat("a", 5000), false},
+
+		{"", true},
+		{"   ", true},
+		{"Policy updated – please read", true},
+		{strings.Repeat("a", 5001), true},
+	}
+
+	assertCases(t, FieldEmailBody, cases)
+}

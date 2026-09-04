@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/chromedp/chromedp"
+	u "github.com/quollix/common/utils"
 )
 
 func (e *Element) Element(selector string) (*Element, error) {
@@ -154,7 +155,10 @@ func (e *Element) TypeText(value string) error {
 	})()`, e.expr), nil); err != nil {
 		return err
 	}
-	return chromedp.Run(e.page.ctx, chromedp.KeyEvent(value))
+	if err := chromedp.Run(e.page.ctx, chromedp.KeyEvent(value)); err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	return nil
 }
 
 func (e *Element) ensureExists() error {
@@ -163,7 +167,7 @@ func (e *Element) ensureExists() error {
 		return err
 	}
 	if !exists {
-		return fmt.Errorf("element not found")
+		return u.Logger.NewError("element not found")
 	}
 	return nil
 }
@@ -175,7 +179,10 @@ func (e *Element) exists() (bool, error) {
 }
 
 func (e *Element) evaluate(expression string, result any) error {
-	return chromedp.Run(e.page.ctx, chromedp.EvaluateAsDevTools(expression, result))
+	if err := chromedp.Run(e.page.ctx, chromedp.EvaluateAsDevTools(expression, result)); err != nil {
+		return u.Logger.NewError(err.Error())
+	}
+	return nil
 }
 
 func (v *PropertyValue) String() string {

@@ -1,7 +1,6 @@
 package store
 
 import (
-	"fmt"
 	"time"
 
 	u "github.com/quollix/common/utils"
@@ -14,25 +13,23 @@ var (
 	ApiPrefix    = "/api"
 	WipeDataPath = ApiPrefix + "/wipe-data"
 
-	userPath                = ApiPrefix + "/account"
-	RegistrationPath        = userPath + "/registration"
-	ConfirmRegistrationPath = userPath + "/validate"
-	LoginPath               = userPath + "/login"
-	LogoutPath              = userPath + "/logout"
-	DeleteUserPath          = userPath + "/delete"
-	ChangePasswordPath      = userPath + "/change-password"
-	AccountDetailsPath      = userPath + "/details"
+	userPath                 = ApiPrefix + "/account"
+	LoginPath                = userPath + "/login"
+	LogoutPath               = userPath + "/logout"
+	DeleteUserPath           = userPath + "/delete"
+	ChangePasswordPath       = userPath + "/change-password"
+	AccountDetailsPath       = userPath + "/details"
+	SetupInitialPasswordPath = userPath + "/setup-password"
+	EmailChangePath          = userPath + "/email-change"
 
-	EmailChangePath        = userPath + "/email-change"
-	RequestEmailChangePath = EmailChangePath + "/request"
-	ConfirmEmailChangePath = EmailChangePath + "/confirm"
-
-	VersionPath       = ApiPrefix + "/versions"
-	VersionUploadPath = VersionPath + "/upload"
-	VersionDeletePath = VersionPath + "/delete"
-	GetVersionsPath   = VersionPath + "/list"
-	DownloadPath      = VersionPath + "/download"
-	DownloadByIDPath  = VersionPath + "/download-by-id"
+	VersionPath                      = ApiPrefix + "/versions"
+	VersionUploadPath                = VersionPath + "/upload"
+	VersionDeletePath                = VersionPath + "/delete"
+	GetVersionsPath                  = VersionPath + "/list"
+	DownloadPath                     = VersionPath + "/download"
+	DownloadByIDPath                 = VersionPath + "/download-by-id"
+	DownloadNextVersionForUpdatePath = VersionPath + "/download-next-for-update"
+	VersionMigrationCheckpointPath   = VersionPath + "/migration-checkpoint"
 
 	AppPath         = ApiPrefix + "/apps"
 	AppCreationPath = AppPath + "/create"
@@ -43,11 +40,18 @@ var (
 	EmailConfigPath      = ApiPrefix + "/email-config"
 	EmailConfigReadPath  = EmailConfigPath + "/read"
 	EmailConfigWritePath = EmailConfigPath + "/write"
+
+	AdminEmailPath            = ApiPrefix + "/admin/email"
+	AdminEmailTestPath        = AdminEmailPath + "/test"
+	AdminEmailMaintainersPath = AdminEmailPath + "/maintainers"
+
+	MaintainerPublicKeyPath   = ApiPrefix + "/maintainers/public-key"
+	AdminMaintainerPath       = ApiPrefix + "/admin/maintainers"
+	AdminMaintainerCreatePath = AdminMaintainerPath + "/create"
+	AdminMaintainerDeletePath = AdminMaintainerPath + "/delete"
 )
 
 type AppStoreClient interface {
-	Register(maintainer, password, email string, maintainerPublicKeyRaw []byte) error
-	ConfirmationRegistration(code string) error
 	Login(username, password string) error
 	DeleteOwnAccount() error
 	CreateApp(appName string) error
@@ -57,8 +61,10 @@ type AppStoreClient interface {
 	// Deprecated: use DownloadVersionByID.
 	DownloadVersion(userName, appName, versionName string) (*Version, error)
 	DownloadVersionByID(versionId int) (*Version, error)
+	DownloadNextVersionForUpdate(userName, appName string, currentVersionCreationTimestamp time.Time) (*NextVersionForUpdateResponse, error)
 	ListVersions(userName, appName string) ([]LeanVersionDto, error)
 	DeleteVersionByID(versionId int) error
+	SetVersionMigrationCheckpoint(versionId int, isMigrationCheckpoint bool) error
 	DeleteApp(appName string) error
 	ChangePassword(oldPassword, newPassword string) error
 	Logout() error
@@ -67,8 +73,15 @@ type AppStoreClient interface {
 	GetEmailConfig() (*u.EmailConfig, error)
 	SetEmailConfig(emailConfig *u.EmailConfig) error
 
-	RequestEmailChange(email string) error
-	ConfirmEmailChange(emailChangeConfirmationCode string) error
+	ChangeEmail(email string) error
+
+	CreateMaintainerByAdmin(name, email string, publicKeyRaw, publicKeySignature []byte) (*AdminMaintainerCreateResponse, error)
+	DeleteMaintainerByAdmin(name string) error
+	GetMaintainerPublicKeyRecord(maintainer string) (*MaintainerPublicKeyRecord, error)
+	SetupInitialPassword(setupToken, password string) error
+
+	SendTestEmailByAdmin(subject, body string) (*AdminEmailSendResult, error)
+	SendEmailToMaintainersByAdmin(subject, body string) (*AdminEmailSendResult, error)
 }
 
 type AppStoreClientImpl struct {
@@ -91,19 +104,11 @@ func (h *AppStoreClientImpl) UploadVersionAndReturnCreatedVersion(appName, versi
 	return u.UnpackResponse[CreatedVersionResponse](result)
 }
 
-func (h *AppStoreClientImpl) Register(maintainer, password, email string, maintainerPublicKeyRaw []byte) error {
-	form := RegistrationForm{
-		User:                   maintainer,
-		Password:               password,
-		Email:                  email,
-		MaintainerPublicKeyRaw: maintainerPublicKeyRaw,
-	}
-	_, err := h.Parent.DoRequest(RegistrationPath, form)
-	return err
-}
-
-func (h *AppStoreClientImpl) ConfirmationRegistration(registrationCode string) error {
-	_, err := h.Parent.DoRequest(ConfirmRegistrationPath, SecretString{Value: registrationCode})
+func (h *AppStoreClientImpl) SetupInitialPassword(setupToken, password string) error {
+	_, err := h.Parent.DoRequest(SetupInitialPasswordPath, SetupInitialPasswordForm{
+		Token:    setupToken,
+		Password: password,
+	})
 	return err
 }
 
@@ -120,7 +125,7 @@ func (h *AppStoreClientImpl) Login(username, password string) error {
 
 	cookies := resp.Cookies()
 	if len(cookies) != 1 {
-		return fmt.Errorf("expected 1 cookie, got %d", len(cookies))
+		return u.Logger.NewError("unexpected cookie count", "expected", 1, "actual", len(cookies))
 	}
 	h.Parent.Cookie = cookies[0]
 	return nil
@@ -187,7 +192,7 @@ func (h *AppStoreClientImpl) DownloadVersion(userName, appName, versionName stri
 
 	err = h.Validator.Validate(version.Content, version.Maintainer, version.AppName)
 	if err != nil {
-		return nil, fmt.Errorf("version validation failed: %w", err)
+		return nil, err
 	}
 
 	return version, nil
@@ -206,10 +211,28 @@ func (h *AppStoreClientImpl) DownloadVersionByID(versionId int) (*Version, error
 
 	err = h.Validator.Validate(version.Content, version.Maintainer, version.AppName)
 	if err != nil {
-		return nil, fmt.Errorf("version validation failed: %w", err)
+		return nil, err
 	}
 
 	return version, nil
+}
+
+func (h *AppStoreClientImpl) DownloadNextVersionForUpdate(userName, appName string, currentVersionCreationTimestamp time.Time) (*NextVersionForUpdateResponse, error) {
+	result, err := h.Parent.DoRequest(DownloadNextVersionForUpdatePath, NextVersionForUpdateRequest{
+		Maintainer:                      userName,
+		AppName:                         appName,
+		CurrentVersionCreationTimestamp: currentVersionCreationTimestamp.UTC(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := u.UnpackResponse[NextVersionForUpdateResponse](result)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
 
 func (h *AppStoreClientImpl) ListVersions(userName, appName string) ([]LeanVersionDto, error) {
@@ -231,6 +254,14 @@ func (h *AppStoreClientImpl) ListVersions(userName, appName string) ([]LeanVersi
 
 func (h *AppStoreClientImpl) DeleteVersionByID(versionId int) error {
 	_, err := h.Parent.DoRequest(VersionDeletePath, VersionID{VersionId: versionId})
+	return err
+}
+
+func (h *AppStoreClientImpl) SetVersionMigrationCheckpoint(versionId int, isMigrationCheckpoint bool) error {
+	_, err := h.Parent.DoRequest(VersionMigrationCheckpointPath, VersionMigrationCheckpointRequest{
+		VersionId:             versionId,
+		IsMigrationCheckpoint: isMigrationCheckpoint,
+	})
 	return err
 }
 
@@ -283,14 +314,51 @@ func (h *AppStoreClientImpl) SetEmailConfig(emailConfig *u.EmailConfig) error {
 	return err
 }
 
-func (h *AppStoreClientImpl) RequestEmailChange(email string) error {
-	_, err := h.Parent.DoRequest(RequestEmailChangePath, EmailString{Value: email})
+func (h *AppStoreClientImpl) ChangeEmail(email string) error {
+	_, err := h.Parent.DoRequest(EmailChangePath, EmailString{Value: email})
 	return err
 }
 
-func (h *AppStoreClientImpl) ConfirmEmailChange(emailChangeConfirmationCode string) error {
-	_, err := h.Parent.DoRequest(ConfirmEmailChangePath, SecretString{Value: emailChangeConfirmationCode})
+func (h *AppStoreClientImpl) CreateMaintainerByAdmin(name, email string, publicKeyRaw, publicKeySignature []byte) (*AdminMaintainerCreateResponse, error) {
+	responseBody, err := h.Parent.DoRequest(AdminMaintainerCreatePath, AdminMaintainerCreateForm{
+		Name:               name,
+		Email:              email,
+		PublicKeyRaw:       publicKeyRaw,
+		PublicKeySignature: publicKeySignature,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return u.UnpackResponse[AdminMaintainerCreateResponse](responseBody)
+}
+
+func (h *AppStoreClientImpl) GetMaintainerPublicKeyRecord(maintainer string) (*MaintainerPublicKeyRecord, error) {
+	responseBody, err := h.Parent.DoRequest(MaintainerPublicKeyPath, MaintainerNameString{Value: maintainer})
+	if err != nil {
+		return nil, err
+	}
+	return u.UnpackResponse[MaintainerPublicKeyRecord](responseBody)
+}
+
+func (h *AppStoreClientImpl) DeleteMaintainerByAdmin(name string) error {
+	_, err := h.Parent.DoRequest(AdminMaintainerDeletePath, MaintainerNameString{Value: name})
 	return err
+}
+
+func (h *AppStoreClientImpl) SendTestEmailByAdmin(subject, body string) (*AdminEmailSendResult, error) {
+	responseBody, err := h.Parent.DoRequest(AdminEmailTestPath, AdminEmailRequest{Subject: subject, Body: body})
+	if err != nil {
+		return nil, err
+	}
+	return u.UnpackResponse[AdminEmailSendResult](responseBody)
+}
+
+func (h *AppStoreClientImpl) SendEmailToMaintainersByAdmin(subject, body string) (*AdminEmailSendResult, error) {
+	responseBody, err := h.Parent.DoRequest(AdminEmailMaintainersPath, AdminEmailRequest{Subject: subject, Body: body})
+	if err != nil {
+		return nil, err
+	}
+	return u.UnpackResponse[AdminEmailSendResult](responseBody)
 }
 
 func (s *AppStoreClientImpl) WipeData() {

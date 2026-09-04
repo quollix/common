@@ -10,8 +10,9 @@ import (
 var crypto = &BytesSignerImpl{}
 
 func TestSignAndVerifyBytes(t *testing.T) {
-	publicKey, privateKey, err := ed25519.GenerateKey(nil)
+	privateKey, err := DecodeEd25519PrivateKeyOpenSSH(GetLocalTestingPrivateKeyBytes())
 	assert.Nil(t, err)
+	publicKey := privateKey.Public().(ed25519.PublicKey)
 
 	payloadBytes := []byte(`{"hello":"world"}`)
 	signature := crypto.SignBytes(privateKey, payloadBytes)
@@ -25,8 +26,7 @@ func TestSignAndVerifyBytes(t *testing.T) {
 }
 
 func TestVerifyBytes_FailsWhenSignatureDoesNotMatch(t *testing.T) {
-	publicKey, _, err := ed25519.GenerateKey(nil)
-	assert.Nil(t, err)
+	publicKey := ed25519.PublicKey(GetOtherLocalTestingPublicKeyRaw())
 
 	isValid := crypto.VerifyBytes(publicKey, []byte(`{}`), []byte("invalid-signature"))
 	assert.False(t, isValid)

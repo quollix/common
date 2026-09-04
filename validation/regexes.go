@@ -47,6 +47,8 @@ const (
 	FieldOidcClaim      = "oidc_claim"
 	FieldCredential     = "credential"
 	FieldComposeSecret  = "compose_secret_name"
+	FieldEmailSubject   = "email_subject"
+	FieldEmailBody      = "email_body"
 )
 
 var ValidationMap = map[string]ValidationFunc{
@@ -72,6 +74,8 @@ var ValidationMap = map[string]ValidationFunc{
 	FieldOidcClaim:      NewOpaqueStringValidator(true, 1024),
 	FieldCredential:     NewOpaqueStringValidator(false, 1024),
 	FieldComposeSecret:  NewGenericRegex(`^SECRET_[A-Z0-9_]{1,128}$`, "Invalid input. The content of the field %s must be a valid compose secret name."),
+	FieldEmailSubject:   NewEmailTextValidator(false, 120),
+	FieldEmailBody:      NewEmailTextValidator(true, 5000),
 }
 
 func NewSimpleRegex(allowedSymbols string, minLength, maxLength int) ValidationFunc {
@@ -130,6 +134,27 @@ func buildOpaqueStringError(fieldName string, maxLength int, reason string) erro
 		fieldFieldNameKey, fieldName,
 		fieldMaxLength, maxLength,
 	)
+}
+
+func NewEmailTextValidator(allowNewlines bool, maxLength int) ValidationFunc {
+	return func(fieldName, valueToValidate string) error {
+		if strings.TrimSpace(valueToValidate) == "" {
+			return buildOpaqueStringError(fieldName, maxLength, "must not be empty")
+		}
+		if len(valueToValidate) > maxLength {
+			return buildOpaqueStringError(fieldName, maxLength, "is too long")
+		}
+		for _, r := range valueToValidate {
+			if r >= 32 && r <= 126 {
+				continue
+			}
+			if allowNewlines && (r == '\n' || r == '\r' || r == '\t') {
+				continue
+			}
+			return buildOpaqueStringError(fieldName, maxLength, "contains unsupported characters")
+		}
+		return nil
+	}
 }
 
 func buildSimpleRegexErrorMessage(fieldName, allowedSymbols string, minLength, maxLength int) string {

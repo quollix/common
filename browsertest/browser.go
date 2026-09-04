@@ -8,6 +8,7 @@ import (
 	"os/exec"
 
 	"github.com/chromedp/chromedp"
+	u "github.com/quollix/common/utils"
 )
 
 func NewBrowser(headful bool) (*Browser, error) {
@@ -32,7 +33,7 @@ func NewBrowser(headful bool) (*Browser, error) {
 	if err := chromedp.Run(ctx); err != nil {
 		cancel()
 		allocatorCancel()
-		return nil, err
+		return nil, u.Logger.NewError(err.Error())
 	}
 
 	return &Browser{
@@ -58,7 +59,7 @@ func findChromiumPath() (string, error) {
 			return path, nil
 		}
 	}
-	return "", fmt.Errorf("chromium executable not found in PATH, install chromium or chromium-browser")
+	return "", u.Logger.NewError("chromium executable not found in PATH, install chromium or chromium-browser")
 }
 
 func (b *Browser) InitialPage() *Page {
@@ -75,7 +76,7 @@ func (b *Browser) NewPage() (*Page, error) {
 	page := &Page{browser: b, ctx: ctx, cancel: cancel}
 	if err := chromedp.Run(ctx); err != nil {
 		cancel()
-		return nil, err
+		return nil, u.Logger.NewError(err.Error())
 	}
 	return page, nil
 }
