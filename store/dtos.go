@@ -68,11 +68,6 @@ type AdminMaintainerCreateForm struct {
 	PublicKeySignature []byte
 }
 
-type AdminMaintainerCreateResponse struct {
-	SetupToken     string
-	ExpirationDate time.Time
-}
-
 type MaintainerPublicKeyRecord struct {
 	Maintainer         string
 	PublicKeyRaw       []byte

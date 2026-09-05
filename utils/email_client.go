@@ -8,6 +8,31 @@ import (
 
 const EmailServiceNotEnabledErrorMessage = "email service is not enabled"
 
+const (
+	SampleEmailFailingRecipient = "failing-maintainer@example.com"
+	SampleEmailSendFailedError  = "test email client failed to send email"
+)
+
+type EmailMessage struct {
+	Subject string
+	Body    string
+}
+
+var (
+	SampleTestEmail = EmailMessage{
+		Subject: "TEST admin email",
+		Body:    "see new policy at https://quollix.org/legal/new-policy.md",
+	}
+	SampleMaintainersEmail = EmailMessage{
+		Subject: "TEST maintainers email",
+		Body:    "maintainers can review https://quollix.org/legal/new-policy.md",
+	}
+	SampleMaintainersFailureEmail = EmailMessage{
+		Subject: "TEST maintainers partial failure",
+		Body:    "maintainers can review https://quollix.org/legal/failing-policy.md",
+	}
+)
+
 type EmailConfig struct {
 	SMTPHost             string `validate:"host" json:"smtp_host"`
 	SMTPPort             string `validate:"number" json:"smtp_port"`

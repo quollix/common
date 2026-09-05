@@ -4,7 +4,6 @@ import (
 	"time"
 
 	u "github.com/quollix/common/utils"
-	"github.com/quollix/common/validation"
 )
 
 var (
@@ -58,8 +57,6 @@ type AppStoreClient interface {
 	SearchForApps(maintainerSearchTerm, appSearchTerm string, showUnofficialApps bool) ([]AppWithLatestVersion, error)
 	ListOwnApps() ([]string, error)
 	UploadVersionAndReturnCreatedVersion(appName, versionName string, creationTimestamp time.Time, content, signature []byte) (*CreatedVersionResponse, error)
-	// Deprecated: use DownloadVersionByID.
-	DownloadVersion(userName, appName, versionName string) (*Version, error)
 	DownloadVersionByID(versionId int) (*Version, error)
 	DownloadNextVersionForUpdate(userName, appName string, currentVersionCreationTimestamp time.Time) (*NextVersionForUpdateResponse, error)
 	ListVersions(userName, appName string) ([]LeanVersionDto, error)
@@ -75,7 +72,7 @@ type AppStoreClient interface {
 
 	ChangeEmail(email string) error
 
-	CreateMaintainerByAdmin(name, email string, publicKeyRaw, publicKeySignature []byte) (*AdminMaintainerCreateResponse, error)
+	CreateMaintainerByAdmin(name, email string, publicKeyRaw, publicKeySignature []byte) error
 	DeleteMaintainerByAdmin(name string) error
 	GetMaintainerPublicKeyRecord(maintainer string) (*MaintainerPublicKeyRecord, error)
 	SetupInitialPassword(setupToken, password string) error
@@ -85,8 +82,7 @@ type AppStoreClient interface {
 }
 
 type AppStoreClientImpl struct {
-	Parent    u.ComponentClient
-	Validator validation.VersionValidator
+	Parent u.ComponentClient
 }
 
 func (h *AppStoreClientImpl) UploadVersionAndReturnCreatedVersion(appName, versionName string, creationTimestamp time.Time, content, signature []byte) (*CreatedVersionResponse, error) {
@@ -174,30 +170,6 @@ func (h *AppStoreClientImpl) ListOwnApps() ([]string, error) {
 	return *apps, nil
 }
 
-// Deprecated: use DownloadVersionByID.
-func (h *AppStoreClientImpl) DownloadVersion(userName, appName, versionName string) (*Version, error) {
-	result, err := h.Parent.DoRequest(DownloadPath, VersionTree{
-		Maintainer:  userName,
-		AppName:     appName,
-		VersionName: versionName,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	version, err := u.UnpackResponse[Version](result)
-	if err != nil {
-		return nil, err
-	}
-
-	err = h.Validator.Validate(version.Content, version.Maintainer, version.AppName)
-	if err != nil {
-		return nil, err
-	}
-
-	return version, nil
-}
-
 func (h *AppStoreClientImpl) DownloadVersionByID(versionId int) (*Version, error) {
 	result, err := h.Parent.DoRequest(DownloadByIDPath, VersionID{VersionId: versionId})
 	if err != nil {
@@ -205,11 +177,6 @@ func (h *AppStoreClientImpl) DownloadVersionByID(versionId int) (*Version, error
 	}
 
 	version, err := u.UnpackResponse[Version](result)
-	if err != nil {
-		return nil, err
-	}
-
-	err = h.Validator.Validate(version.Content, version.Maintainer, version.AppName)
 	if err != nil {
 		return nil, err
 	}
@@ -319,17 +286,14 @@ func (h *AppStoreClientImpl) ChangeEmail(email string) error {
 	return err
 }
 
-func (h *AppStoreClientImpl) CreateMaintainerByAdmin(name, email string, publicKeyRaw, publicKeySignature []byte) (*AdminMaintainerCreateResponse, error) {
-	responseBody, err := h.Parent.DoRequest(AdminMaintainerCreatePath, AdminMaintainerCreateForm{
+func (h *AppStoreClientImpl) CreateMaintainerByAdmin(name, email string, publicKeyRaw, publicKeySignature []byte) error {
+	_, err := h.Parent.DoRequest(AdminMaintainerCreatePath, AdminMaintainerCreateForm{
 		Name:               name,
 		Email:              email,
 		PublicKeyRaw:       publicKeyRaw,
 		PublicKeySignature: publicKeySignature,
 	})
-	if err != nil {
-		return nil, err
-	}
-	return u.UnpackResponse[AdminMaintainerCreateResponse](responseBody)
+	return err
 }
 
 func (h *AppStoreClientImpl) GetMaintainerPublicKeyRecord(maintainer string) (*MaintainerPublicKeyRecord, error) {

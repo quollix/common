@@ -9,7 +9,6 @@ type PathsType struct {
 	FrontendUsers            string
 	FrontendUserEdit         string
 	FrontendStore            string
-	FrontendAppMaintainers   string
 	FrontendVersions         string
 	FrontendBackedUpApps     string
 	FrontendListBackups      string
@@ -190,7 +189,6 @@ var Paths = func() PathsType {
 	p.FrontendUsers = "/users"
 	p.FrontendUserEdit = "/edit-user"
 	p.FrontendStore = "/store"
-	p.FrontendAppMaintainers = "/app-maintainers"
 	p.FrontendVersions = "/versions"
 	p.FrontendSetPassword = "/set-password"
 	p.FrontendAccount = "/account"
