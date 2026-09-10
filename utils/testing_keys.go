@@ -6,27 +6,32 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-const localTestingPrivateKeyOpenSSH = `-----BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACBe9GDTJJdlnnZqaNlLM7yK1yaq/6YAqXr8rDY48LVIoAAAAJiNquafjarm
-nwAAAAtzc2gtZWQyNTUxOQAAACBe9GDTJJdlnnZqaNlLM7yK1yaq/6YAqXr8rDY48LVIoA
-AAAEBy93cGXFFlR/PyHCdrCjXOjNGi52drotjlb6v7Egg1Tl70YNMkl2Wedmpo2UszvIrX
-Jqr/pgCpevysNjjwtUigAAAADnN0b3JlLXRlc3Qta2V5AQIDBAUGBw==
+const LocalTestingPrivateKeyOpenSSH = `-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABB0i2GK2a
+2Yp5F/MHhsax9jAAAAZAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIF70YNMkl2Wedmpo
+2UszvIrXJqr/pgCpevysNjjwtUigAAAAoNEJgl4UxZrbOp3IDxwGGbR2CZLfDysihPQM/x
+TxPiSykOXb7aVcMgxhp2YjWv2LiXk8aKRov+2wt+5VnNys++Adu7bQlt9vFyCbxf37pF7R
+RcJSwxz/oGtxR1xSpVoxGu78HX8hUdc8Kfgl+mDHjD/BQVvwPaxhNds8DCsFUwLTrCZDLM
+JXgeDrX5FEziouuRnYxpsbVeYtwhG3dIrs+XM=
 -----END OPENSSH PRIVATE KEY-----
 `
 
-const otherLocalTestingPrivateKeyOpenSSH = `-----BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACCivB4dgjKyDGyYns+WN+ZYShn3XXPsTmuxIpNKsyt+rgAAAJBv1sTyb9bE
-8gAAAAtzc2gtZWQyNTUxOQAAACCivB4dgjKyDGyYns+WN+ZYShn3XXPsTmuxIpNKsyt+rg
-AAAEAZ0+KIT35e+H8CrvPJ30F238nVZ30ma2hAEQxjIdnHl6K8Hh2CMrIMbJiez5Y35lhK
-Gfddc+xOa7Eik0qzK36uAAAAC2JhaWVyQHRpbmt5AQI=
+const OtherLocalTestingPrivateKeyOpenSSH = `-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABAtHGz/b/
+9rlJJo4ngG1TPUAAAAZAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIKK8Hh2CMrIMbJie
+z5Y35lhKGfddc+xOa7Eik0qzK36uAAAAkMPJ78XVGy5Z0WHshkZl3Tp1NMrf/pfr3PX8Kf
+THeWEfGqVw38qCWrpheTxJ2uDKKgw+CaqUsc/elqy0e2iI3udqRbXjoaiDwTXl0iSeAIQs
+jE6xw9T2HZIJNrZbdS22ktMH5Rt6L6u9hdHVDQgexkA6G3N6ifcl+q+o7GrLKhf+Sn+JKa
+or5WpeDeioct72sA==
 -----END OPENSSH PRIVATE KEY-----
 `
 
 const (
 	LocalTestingPublicKeyOpenSSH      = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF70YNMkl2Wedmpo2UszvIrXJqr/pgCpevysNjjwtUig"
 	OtherLocalTestingPublicKeyOpenSSH = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKK8Hh2CMrIMbJiez5Y35lhKGfddc+xOa7Eik0qzK36u"
+
+	LocalTestingPrivateKeyPassphrase      = "password1"
+	OtherLocalTestingPrivateKeyPassphrase = "password2"
 )
 
 var (
@@ -34,24 +39,8 @@ var (
 	OtherLocalTestingPublicKeyOpenSSHBytes = []byte(OtherLocalTestingPublicKeyOpenSSH)
 )
 
-func GetLocalTestingPrivateKeyOpenSSH() string {
-	return localTestingPrivateKeyOpenSSH
-}
-
-func GetOtherLocalTestingPrivateKeyOpenSSH() string {
-	return otherLocalTestingPrivateKeyOpenSSH
-}
-
-func GetLocalTestingPrivateKeyBytes() []byte {
-	return []byte(localTestingPrivateKeyOpenSSH)
-}
-
-func GetOtherLocalTestingPrivateKeyBytes() []byte {
-	return []byte(otherLocalTestingPrivateKeyOpenSSH)
-}
-
 func GetLocalTestingPublicKeyRaw() []byte {
-	privateKey, err := DecodeEd25519PrivateKeyOpenSSH(GetLocalTestingPrivateKeyBytes())
+	privateKey, err := DecodeEd25519PrivateKeyOpenSSH([]byte(LocalTestingPrivateKeyOpenSSH), []byte(LocalTestingPrivateKeyPassphrase))
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +48,7 @@ func GetLocalTestingPublicKeyRaw() []byte {
 }
 
 func GetOtherLocalTestingPublicKeyRaw() []byte {
-	privateKey, err := DecodeEd25519PrivateKeyOpenSSH(GetOtherLocalTestingPrivateKeyBytes())
+	privateKey, err := DecodeEd25519PrivateKeyOpenSSH([]byte(OtherLocalTestingPrivateKeyOpenSSH), []byte(OtherLocalTestingPrivateKeyPassphrase))
 	if err != nil {
 		panic(err)
 	}

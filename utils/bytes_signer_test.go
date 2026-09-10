@@ -10,7 +10,7 @@ import (
 var crypto = &BytesSignerImpl{}
 
 func TestSignAndVerifyBytes(t *testing.T) {
-	privateKey, err := DecodeEd25519PrivateKeyOpenSSH(GetLocalTestingPrivateKeyBytes())
+	privateKey, err := DecodeEd25519PrivateKeyOpenSSH([]byte(LocalTestingPrivateKeyOpenSSH), []byte(LocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 	publicKey := privateKey.Public().(ed25519.PublicKey)
 

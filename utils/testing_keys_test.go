@@ -12,7 +12,7 @@ func TestLocalTestingKeysCanBeDecoded(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 32, len(publicKey))
 
-	privateKey, err := DecodeEd25519PrivateKeyOpenSSH(GetLocalTestingPrivateKeyBytes())
+	privateKey, err := DecodeEd25519PrivateKeyOpenSSH([]byte(LocalTestingPrivateKeyOpenSSH), []byte(LocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 	assert.Equal(t, 64, len(privateKey))
 
@@ -20,7 +20,7 @@ func TestLocalTestingKeysCanBeDecoded(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 32, len(otherPublicKey))
 
-	otherPrivateKey, err := DecodeEd25519PrivateKeyOpenSSH(GetOtherLocalTestingPrivateKeyBytes())
+	otherPrivateKey, err := DecodeEd25519PrivateKeyOpenSSH([]byte(OtherLocalTestingPrivateKeyOpenSSH), []byte(OtherLocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 	assert.Equal(t, 64, len(otherPrivateKey))
 	assert.Equal(t, otherPublicKey, otherPrivateKey.Public().(ed25519.PublicKey))

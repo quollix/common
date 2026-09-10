@@ -9,7 +9,7 @@ import (
 )
 
 func TestMaintainerPublicKeySigning_HappyPath(t *testing.T) {
-	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH(u.GetLocalTestingPrivateKeyBytes())
+	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH([]byte(u.LocalTestingPrivateKeyOpenSSH), []byte(u.LocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 	publicKey := u.GetLocalTestingPublicKeyRaw()
 
@@ -26,7 +26,7 @@ func TestMaintainerPublicKeySigning_HappyPath(t *testing.T) {
 }
 
 func TestMaintainerPublicKeySigning_DifferentMaintainerFailsVerification(t *testing.T) {
-	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH(u.GetLocalTestingPrivateKeyBytes())
+	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH([]byte(u.LocalTestingPrivateKeyOpenSSH), []byte(u.LocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 	publicKey := u.GetLocalTestingPublicKeyRaw()
 
@@ -43,7 +43,7 @@ func TestMaintainerPublicKeySigning_DifferentMaintainerFailsVerification(t *test
 }
 
 func TestMaintainerPublicKeySigning_DifferentPublicKeyFailsVerification(t *testing.T) {
-	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH(u.GetLocalTestingPrivateKeyBytes())
+	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH([]byte(u.LocalTestingPrivateKeyOpenSSH), []byte(u.LocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 	publicKey := u.GetLocalTestingPublicKeyRaw()
 	differentPublicKey := u.GetOtherLocalTestingPublicKeyRaw()
@@ -61,7 +61,7 @@ func TestMaintainerPublicKeySigning_DifferentPublicKeyFailsVerification(t *testi
 }
 
 func TestMaintainerPublicKeySigning_DifferentAdminPublicKeyFailsVerification(t *testing.T) {
-	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH(u.GetLocalTestingPrivateKeyBytes())
+	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH([]byte(u.LocalTestingPrivateKeyOpenSSH), []byte(u.LocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 	publicKey := u.GetLocalTestingPublicKeyRaw()
 	differentAdminPublicKey := ed25519.PublicKey(u.GetOtherLocalTestingPublicKeyRaw())
@@ -79,7 +79,7 @@ func TestMaintainerPublicKeySigning_DifferentAdminPublicKeyFailsVerification(t *
 }
 
 func TestMaintainerPublicKeySigning_RejectsInvalidSignatureLength(t *testing.T) {
-	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH(u.GetLocalTestingPrivateKeyBytes())
+	privateKey, err := u.DecodeEd25519PrivateKeyOpenSSH([]byte(u.LocalTestingPrivateKeyOpenSSH), []byte(u.LocalTestingPrivateKeyPassphrase))
 	assert.Nil(t, err)
 
 	ok, err := VerifyMaintainerPublicKeySignature(privateKey.Public().(ed25519.PublicKey), &MaintainerPublicKeyRecord{

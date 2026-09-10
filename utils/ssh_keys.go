@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/ed25519"
+	"errors"
 
 	"golang.org/x/crypto/ssh"
 )
@@ -22,8 +23,8 @@ func DecodeAuthorizedEd25519PublicKey(authorizedKey []byte) (ed25519.PublicKey, 
 	return append(ed25519.PublicKey(nil), publicKey...), nil
 }
 
-func DecodeEd25519PrivateKeyOpenSSH(privateKeyOpenSSH []byte) (ed25519.PrivateKey, error) {
-	privateKey, err := ssh.ParseRawPrivateKey(privateKeyOpenSSH)
+func DecodeEd25519PrivateKeyOpenSSH(privateKeyOpenSSH []byte, passphrase []byte) (ed25519.PrivateKey, error) {
+	privateKey, err := ssh.ParseRawPrivateKeyWithPassphrase(privateKeyOpenSSH, passphrase)
 	if err != nil {
 		return nil, Logger.NewError(err.Error())
 	}
@@ -35,4 +36,16 @@ func DecodeEd25519PrivateKeyOpenSSH(privateKeyOpenSSH []byte) (ed25519.PrivateKe
 	default:
 		return nil, Logger.NewError("test private key is not an ed25519 private key")
 	}
+}
+
+func IsPrivateKeyPassphraseProtectedOpenSSH(privateKeyOpenSSH []byte) (bool, error) {
+	_, err := ssh.ParseRawPrivateKey(privateKeyOpenSSH)
+	if err == nil {
+		return false, nil
+	}
+	var passphraseMissingErr *ssh.PassphraseMissingError
+	if errors.As(err, &passphraseMissingErr) {
+		return true, nil
+	}
+	return false, Logger.NewError(err.Error())
 }
