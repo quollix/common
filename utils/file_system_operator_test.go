@@ -87,11 +87,11 @@ func TestRemoveDir_RemovesDirectoryRecursively(t *testing.T) {
 	assert.Nil(t, err)
 
 	nestedDir := filepath.Join(tempDir, "nested")
-	mkdirErr := os.MkdirAll(nestedDir, 0700)
+	mkdirErr := os.MkdirAll(nestedDir, 0o700)
 	assert.Nil(t, mkdirErr)
 
 	filePath := filepath.Join(nestedDir, "file.txt")
-	writeErr := os.WriteFile(filePath, []byte("x"), 0600)
+	writeErr := os.WriteFile(filePath, []byte("x"), 0o600)
 	assert.Nil(t, writeErr)
 
 	assert.Nil(t, osWrapper.RemoveAll(tempDir))
@@ -108,7 +108,7 @@ func TestDoesFileExist_ExistingFile(t *testing.T) {
 	defer func() { assert.Nil(t, osWrapper.RemoveAll(tempDir)) }()
 
 	filePath := filepath.Join(tempDir, "exists.txt")
-	writeErr := os.WriteFile(filePath, []byte("x"), 0600)
+	writeErr := os.WriteFile(filePath, []byte("x"), 0o600)
 	assert.Nil(t, writeErr)
 
 	exists, existsErr := osWrapper.DoesFileExist(filePath)
@@ -128,6 +128,36 @@ func TestDoesFileExist_NonExistingFile(t *testing.T) {
 	exists, existsErr := osWrapper.DoesFileExist(filePath)
 	assert.Nil(t, existsErr)
 	assert.False(t, exists)
+}
+
+func TestGetFileMode_ReturnsFileMode(t *testing.T) {
+	osWrapper := &OsWrapperImpl{}
+
+	tempDir, err := osWrapper.GetTempDir()
+	assert.Nil(t, err)
+	defer func() { assert.Nil(t, osWrapper.RemoveAll(tempDir)) }()
+
+	filePath := filepath.Join(tempDir, "mode.txt")
+	writeErr := os.WriteFile(filePath, []byte("x"), 0o600)
+	assert.Nil(t, writeErr)
+
+	mode, modeErr := osWrapper.GetFileMode(filePath)
+	assert.Nil(t, modeErr)
+	assert.Equal(t, os.FileMode(0o600), mode.Perm())
+}
+
+func TestGetFileMode_NonExistingFileReturnsError(t *testing.T) {
+	osWrapper := &OsWrapperImpl{}
+
+	tempDir, err := osWrapper.GetTempDir()
+	assert.Nil(t, err)
+	defer func() { assert.Nil(t, osWrapper.RemoveAll(tempDir)) }()
+
+	filePath := filepath.Join(tempDir, "does-not-exist.txt")
+
+	mode, modeErr := osWrapper.GetFileMode(filePath)
+	assert.NotNil(t, modeErr)
+	assert.Equal(t, os.FileMode(0), mode)
 }
 
 func TestAllocateLocalhostPort_ReturnsPort(t *testing.T) {

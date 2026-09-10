@@ -23,6 +23,7 @@ type OsWrapper interface {
 	ReadDir(path string) ([]os.DirEntry, error)
 	GetTempDir() (string, error)
 	DoesFileExist(path string) (bool, error)
+	GetFileMode(path string) (os.FileMode, error)
 	AllocateLocalhostPort() (string, error)
 	Now() time.Time
 	PromptUser(prompt string) (string, error)
@@ -99,6 +100,14 @@ func (o *OsWrapperImpl) DoesFileExist(path string) (bool, error) {
 		return false, Logger.NewError(err.Error(), "path", path)
 	}
 	return true, nil
+}
+
+func (o *OsWrapperImpl) GetFileMode(path string) (os.FileMode, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return 0, Logger.NewError(err.Error(), "path", path)
+	}
+	return fileInfo.Mode(), nil
 }
 
 func (o *OsWrapperImpl) AllocateLocalhostPort() (string, error) {
