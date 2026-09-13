@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"golang.org/x/term"
@@ -157,14 +156,15 @@ func (o *OsWrapperImpl) readPromptValue() (string, error) {
 func (o *OsWrapperImpl) PromptSecret(prompt string) (string, error) {
 	fmt.Print(prompt)
 	var value string
-	if !term.IsTerminal(syscall.Stdin) {
+	stdinFileDescriptor := int(os.Stdin.Fd())
+	if !term.IsTerminal(stdinFileDescriptor) {
 		promptValue, err := o.readPromptValue()
 		if err != nil {
 			return "", err
 		}
 		value = promptValue
 	} else {
-		rawValue, err := term.ReadPassword(syscall.Stdin)
+		rawValue, err := term.ReadPassword(stdinFileDescriptor)
 		fmt.Println()
 		if err != nil {
 			return "", Logger.NewError(err.Error())
