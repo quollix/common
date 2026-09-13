@@ -79,7 +79,6 @@ type PathsType struct {
 	BackendAppAutomaticMaintenanceSettings string
 	BackendAppDownloadFromApplication      string
 	BackendAppUploadToApplication          string
-	BackendAppUploadTestDefinition         string
 
 	BackendStore                    string
 	BackendStoreSearch              string
@@ -263,7 +262,6 @@ var Paths = func() PathsType {
 	p.BackendAppAutomaticMaintenanceSettings = p.BackendApps + "/automatic-maintenance-settings"
 	p.BackendAppDownloadFromApplication = p.BackendApps + "/download-from-application"
 	p.BackendAppUploadToApplication = p.BackendApps + "/upload-to-application"
-	p.BackendAppUploadTestDefinition = p.BackendApps + "/upload-test-definition"
 
 	p.BackendStore = p.BackendApi + "/store"
 	p.BackendStoreSearch = p.BackendStore + "/search"

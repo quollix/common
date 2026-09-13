@@ -27,8 +27,11 @@ EFisxHl/yW/DmU3g==
 `
 
 const (
-	LocalTestingPublicKeyOpenSSH      = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF70YNMkl2Wedmpo2UszvIrXJqr/pgCpevysNjjwtUig"
-	OtherLocalTestingPublicKeyOpenSSH = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKK8Hh2CMrIMbJiez5Y35lhKGfddc+xOa7Eik0qzK36u"
+	LocalTestingPublicKeyOpenSSH           = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF70YNMkl2Wedmpo2UszvIrXJqr/pgCpevysNjjwtUig"
+	LocalTestingPublicKeyFingerprintSHA256 = "SHA256:QL91usdSz5KndtEmrv1z4p4KJTUpMA9Vqhqpzqduhbc"
+
+	OtherLocalTestingPublicKeyOpenSSH           = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKK8Hh2CMrIMbJiez5Y35lhKGfddc+xOa7Eik0qzK36u"
+	OtherLocalTestingPublicKeyFingerprintSHA256 = "SHA256:RVqr2+zRJn6XkjcOfl80D6eO3fJygFwqG+jsX4LZPYA"
 
 	LocalTestingPrivateKeyPassphrase      = "password1"
 	OtherLocalTestingPrivateKeyPassphrase = "password2"

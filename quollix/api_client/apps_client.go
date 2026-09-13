@@ -176,10 +176,6 @@ func (c *QuollixAppsClient) UploadVersionFile(file api.BinaryFile) error {
 	return c.quollix.uploadBinaryFile(api.Paths.BackendAppUploadToApplication, file)
 }
 
-func (c *QuollixAppsClient) UploadTestAppDefinition(file api.BinaryFile) error {
-	return c.quollix.uploadBinaryFile(api.Paths.BackendAppUploadTestDefinition, file)
-}
-
 func (c *QuollixAppsClient) DownloadVersionFile(appId string) (*api.BinaryFile, error) {
 	return c.quollix.downloadBinaryFile(api.Paths.BackendAppDownloadFromApplication, api.NumberString{Value: appId})
 }
