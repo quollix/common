@@ -97,8 +97,9 @@ func TestValidatePorts(t *testing.T) {
 	assert.Nil(t, svc.ValidatePorts(map[string]any{}))
 	assert.Nil(t, svc.ValidatePorts(map[string]any{"ports": []any{"8080:80"}}))
 	assert.Nil(t, svc.ValidatePorts(map[string]any{"ports": []any{"123"}}))
+	assert.Nil(t, svc.ValidatePorts(map[string]any{"ports": []any{"53:53"}}))
 
-	forbidden := []string{"22", "53", "80", "443"}
+	forbidden := []string{"22", "80", "443"}
 	for _, p := range forbidden {
 		t.Run("forbidden_"+p, func(t *testing.T) {
 			err := svc.ValidatePorts(map[string]any{"ports": []any{p + ":9999"}})
