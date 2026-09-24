@@ -7,7 +7,11 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/quollix/deepstack"
 )
+
+const responseBodyField = "response_body"
 
 type ComponentClient struct {
 	Cookie            *http.Cookie
@@ -113,7 +117,7 @@ func assertOkStatusAndExtractBody(resp *http.Response) ([]byte, error) {
 	if err == nil {
 		responseBodyString := string(respBody)
 		trimmed := strings.TrimSuffix(responseBodyString, "\n")
-		potentialErrorContext = append(potentialErrorContext, "response_body", trimmed)
+		potentialErrorContext = append(potentialErrorContext, responseBodyField, trimmed)
 	} else {
 		didErrorOccur = true
 		potentialErrorContext = append(potentialErrorContext, "response_body_reading_error", err.Error())
@@ -125,6 +129,15 @@ func assertOkStatusAndExtractBody(resp *http.Response) ([]byte, error) {
 	}
 
 	return respBody, nil
+}
+
+func ExtractResponseErrorMessage(err error) (string, bool) {
+	deepStackError, ok := err.(*deepstack.DeepStackError)
+	if !ok {
+		return "", false
+	}
+	responseBody, ok := deepStackError.Context[responseBodyField].(string)
+	return responseBody, ok && responseBody != ""
 }
 
 func UnpackResponse[T any](object any) (*T, error) {

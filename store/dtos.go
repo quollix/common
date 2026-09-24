@@ -1,8 +1,8 @@
 package store
 
-import (
-	"time"
-)
+import "time"
+
+const VersionContentAlreadyExists = "version content already exists"
 
 type CreatedVersionResponse struct {
 	AppId     int `json:"app_id"`
@@ -66,6 +66,18 @@ type AdminMaintainerCreateForm struct {
 	Email              string `validate:"email"`
 	PublicKeyRaw       []byte
 	PublicKeySignature []byte
+}
+
+type AdminMaintainerStorageLimitForm struct {
+	Name                string `validate:"default"`
+	StorageLimitInBytes int64
+}
+
+type AdminMaintainer struct {
+	Name         string
+	Email        string
+	PublicKeyRaw []byte
+	IsActive     bool
 }
 
 type MaintainerPublicKeyRecord struct {

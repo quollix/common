@@ -23,9 +23,10 @@ type validGenericRegexStruct struct {
 }
 
 type structWithFieldToIgnore struct {
-	ByteField    []byte
-	BoolField    bool
-	IntegerField int
+	ByteField      []byte
+	BoolField      bool
+	IntegerField   int
+	Integer64Field int64
 }
 
 type noValidationTag struct {
@@ -82,7 +83,7 @@ func TestValidateStruct(t *testing.T) {
 		{"valid struct as pointer", &validSimpleRegexStruct{"sample"}, "", nil},
 
 		{"nil input", nil, inputIsNilError, nil},
-		{"check that specific types in fields are skipped", structWithFieldToIgnore{[]byte("asdf"), true, 123}, "", nil},
+		{"check that specific types in fields are skipped", structWithFieldToIgnore{[]byte("asdf"), true, 123, 456}, "", nil},
 		{"time fields should be skipped", structWithTimeField{CreatedAt: time.Now()}, "", nil},
 		{"pointer string fields should fail", pointerString{&sampleString}, "unsupported field type", []any{fieldFieldNameKey, "Value", FieldType, "*string"}},
 		{"nested structs should validate (ok)", nestedStruct{Nested: validSimpleRegexStruct{Value: "sample"}}, "", nil},

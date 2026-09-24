@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,6 +9,16 @@ import (
 
 	"github.com/quollix/common/assert"
 )
+
+func TestExtractResponseErrorMessage(t *testing.T) {
+	message, ok := ExtractResponseErrorMessage(Logger.NewError("request failed", responseBodyField, "sample error"))
+	assert.True(t, ok)
+	assert.Equal(t, "sample error", message)
+
+	message, ok = ExtractResponseErrorMessage(errors.New("sample error"))
+	assert.False(t, ok)
+	assert.Equal(t, "", message)
+}
 
 func TestFindDir(t *testing.T) {
 	dir, err := FindDir("utils")

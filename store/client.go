@@ -44,10 +44,12 @@ var (
 	AdminEmailTestPath        = AdminEmailPath + "/test"
 	AdminEmailMaintainersPath = AdminEmailPath + "/maintainers"
 
-	MaintainerPublicKeyPath   = ApiPrefix + "/maintainers/public-key"
-	AdminMaintainerPath       = ApiPrefix + "/admin/maintainers"
-	AdminMaintainerCreatePath = AdminMaintainerPath + "/create"
-	AdminMaintainerDeletePath = AdminMaintainerPath + "/delete"
+	MaintainerPublicKeyPath     = ApiPrefix + "/maintainers/public-key"
+	AdminMaintainerPath         = ApiPrefix + "/admin/maintainers"
+	AdminMaintainerCreatePath   = AdminMaintainerPath + "/create"
+	AdminMaintainerListPath     = AdminMaintainerPath + "/list"
+	AdminMaintainerDeletePath   = AdminMaintainerPath + "/delete"
+	AdminMaintainerSetSpacePath = AdminMaintainerPath + "/set-space"
 )
 
 type AppStoreClient interface {
@@ -73,7 +75,9 @@ type AppStoreClient interface {
 	ChangeEmail(email string) error
 
 	CreateMaintainerByAdmin(name, email string, publicKeyRaw, publicKeySignature []byte) error
+	ListMaintainersByAdmin() ([]AdminMaintainer, error)
 	DeleteMaintainerByAdmin(name string) error
+	SetMaintainerStorageLimitByAdmin(name string, storageLimitInBytes int64) error
 	GetMaintainerPublicKeyRecord(maintainer string) (*MaintainerPublicKeyRecord, error)
 	SetupInitialPassword(setupToken, password string) error
 
@@ -296,6 +300,18 @@ func (h *AppStoreClientImpl) CreateMaintainerByAdmin(name, email string, publicK
 	return err
 }
 
+func (h *AppStoreClientImpl) ListMaintainersByAdmin() ([]AdminMaintainer, error) {
+	responseBody, err := h.Parent.DoRequest(AdminMaintainerListPath, nil)
+	if err != nil {
+		return nil, err
+	}
+	maintainers, err := u.UnpackResponse[[]AdminMaintainer](responseBody)
+	if err != nil {
+		return nil, err
+	}
+	return *maintainers, nil
+}
+
 func (h *AppStoreClientImpl) GetMaintainerPublicKeyRecord(maintainer string) (*MaintainerPublicKeyRecord, error) {
 	responseBody, err := h.Parent.DoRequest(MaintainerPublicKeyPath, MaintainerNameString{Value: maintainer})
 	if err != nil {
@@ -306,6 +322,14 @@ func (h *AppStoreClientImpl) GetMaintainerPublicKeyRecord(maintainer string) (*M
 
 func (h *AppStoreClientImpl) DeleteMaintainerByAdmin(name string) error {
 	_, err := h.Parent.DoRequest(AdminMaintainerDeletePath, MaintainerNameString{Value: name})
+	return err
+}
+
+func (h *AppStoreClientImpl) SetMaintainerStorageLimitByAdmin(name string, storageLimitInBytes int64) error {
+	_, err := h.Parent.DoRequest(AdminMaintainerSetSpacePath, AdminMaintainerStorageLimitForm{
+		Name:                name,
+		StorageLimitInBytes: storageLimitInBytes,
+	})
 	return err
 }
 

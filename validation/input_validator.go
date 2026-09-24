@@ -58,7 +58,7 @@ func validateField(field reflect.Value, structField reflect.StructField) error {
 		return validateString(field, structField)
 	case reflect.Bool:
 		return nil
-	case reflect.Int:
+	case reflect.Int, reflect.Int64:
 		return nil
 	case reflect.Struct:
 		if field.Type() == reflect.TypeOf(time.Time{}) {
