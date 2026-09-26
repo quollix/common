@@ -43,6 +43,10 @@ func (v *VersionValidatorImpl) Validate(composeFileBytes []byte, maintainerName,
 		return u.Logger.NewError(SystemAppNamesAreAlreadyReserved)
 	}
 
+	if IsWgEasyApp(maintainerName, appName) {
+		return validateWgEasyComposeYaml(composeFileBytes)
+	}
+
 	if err := v.validateLicenseNotice(composeFileBytes); err != nil {
 		return err
 	}
