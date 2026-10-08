@@ -12,7 +12,8 @@ import (
 func TestValidateServiceKeys(t *testing.T) {
 	serviceValidator := &ServiceValidatorImpl{}
 	err := serviceValidator.ValidateServiceKeys(map[string]any{
-		"image": "repo:1.0.0",
+		"image":    "repo:1.0.0",
+		"hostname": "memcached",
 	})
 	assert.Nil(t, err)
 

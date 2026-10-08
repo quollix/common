@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	allowedTopLevelKeys             = u.MapOf("services", "volumes")
+	allowedTopLevelKeys             = u.MapOf("services", "volumes", "configs")
 	composePlaceholderRegex         = regexp.MustCompile(`\$\{([^}]+)\}`)
 	secretComposePlaceholderRegex   = regexp.MustCompile(`^SECRET_[A-Z0-9_]+$`)
 	allowedComposePlaceholders      = []string{"APP_SECRET", "BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SECRET_*", "SERVER_HOST"}
@@ -69,6 +69,9 @@ func (f *ComposeValidatorImpl) ValidateComposeMap(compose map[string]any, mainta
 		return err
 	}
 	if err := validateGlobalVolumes(compose, maintainerName, appName); err != nil {
+		return err
+	}
+	if err := validateConfigs(compose); err != nil {
 		return err
 	}
 	if err := f.validateServices(compose, maintainerName, appName); err != nil {

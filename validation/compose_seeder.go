@@ -1,9 +1,8 @@
 package validation
 
 import (
-	"strings"
-
 	"gopkg.in/yaml.v3"
+	"strings"
 )
 
 func CompleteDockerComposeYaml(maintainer, appName string, inputCompose []byte, dataMap map[string]string) ([]byte, error) {
@@ -19,6 +18,18 @@ func CompleteDockerComposeYaml(maintainer, appName string, inputCompose []byte, 
 	updateVolumes(composeMap)
 
 	return injectPlaceholders(composeMap, dataMap)
+}
+
+func injectPlaceholders(composeMap map[string]any, dataMap map[string]string) ([]byte, error) {
+	composeBytes, err := yaml.Marshal(composeMap)
+	if err != nil {
+		return nil, err
+	}
+	content := string(composeBytes)
+	for name, value := range dataMap {
+		content = strings.ReplaceAll(content, "${"+name+"}", value)
+	}
+	return []byte(content), nil
 }
 
 func addExternalNetwork(composeMap map[string]any, networkName string) {
@@ -43,46 +54,8 @@ func updateServices(composeMap map[string]any, networkName string) {
 			"CAP_SETGID", "CAP_SETUID", "CAP_DAC_OVERRIDE",
 		}
 
-		ensureTzEnvironment(serviceMap)
-
 		services[serviceName] = serviceMap
 	}
-}
-
-func ensureTzEnvironment(serviceMap map[string]any) {
-	const tzEntry = "TZ=${IANA_TIMEZONE}"
-
-	environmentValue, exists := serviceMap["environment"]
-	if !exists || environmentValue == nil {
-		serviceMap["environment"] = []any{tzEntry}
-		return
-	}
-
-	switch typedEnvironment := environmentValue.(type) {
-	case []any:
-		serviceMap["environment"] = ensureStringSliceEntry(typedEnvironment, tzEntry)
-	case map[string]any:
-		if _, hasTz := typedEnvironment["TZ"]; !hasTz {
-			typedEnvironment["TZ"] = "${IANA_TIMEZONE}"
-		}
-		serviceMap["environment"] = typedEnvironment
-	case map[any]any:
-		if _, hasTz := typedEnvironment["TZ"]; !hasTz {
-			typedEnvironment["TZ"] = "${IANA_TIMEZONE}"
-		}
-		serviceMap["environment"] = typedEnvironment
-	default:
-		serviceMap["environment"] = []any{tzEntry}
-	}
-}
-
-func ensureStringSliceEntry(values []any, newEntry string) []any {
-	for _, value := range values {
-		if valueString, ok := value.(string); ok && valueString == newEntry {
-			return values
-		}
-	}
-	return append(values, newEntry)
 }
 
 func updateVolumes(composeMap map[string]any) {
@@ -95,17 +68,4 @@ func updateVolumes(composeMap map[string]any) {
 		volumeMap["name"] = volumeName
 		volumes[volumeName] = volumeMap
 	}
-}
-
-func injectPlaceholders(composeMap map[string]any, dataMap map[string]string) ([]byte, error) {
-	composeBytes, err := yaml.Marshal(composeMap)
-	if err != nil {
-		return nil, err
-	}
-
-	content := string(composeBytes)
-	for placeholderKey, replacementValue := range dataMap {
-		content = strings.ReplaceAll(content, "${"+placeholderKey+"}", replacementValue)
-	}
-	return []byte(content), nil
 }

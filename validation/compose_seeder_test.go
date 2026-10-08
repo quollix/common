@@ -17,10 +17,12 @@ services:
     image: gitea/gitea:1.20.2
     container_name: samplemaintainer_gitea_gitea
     environment:
-      - WELL_KNOWN_ENDPOINT=https://${HOST}/.well-known/openid-configuration
-      - CLIENT_ID=${CLIENT_ID}
-      - CLIENT_SECRET=${CLIENT_SECRET}
-      - APP_SECRET=${APP_SECRET}
+      WELL_KNOWN_ENDPOINT: https://${BASE_DOMAIN}/.well-known/openid-configuration
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
+      APP_SECRET: ${APP_SECRET}
+      IANA_TIMEZONE: ${IANA_TIMEZONE}
+      OPTIONAL: ${SECRET_OPTIONAL}
     volumes:
       - samplemaintainer_gitea_data:/data
 
@@ -38,11 +40,12 @@ services:
         image: gitea/gitea:1.20.2
         container_name: samplemaintainer_gitea_gitea
         environment:
-            - WELL_KNOWN_ENDPOINT=https://my-domain.com/.well-known/openid-configuration
-            - CLIENT_ID=abcdef
-            - CLIENT_SECRET=ghijkl
-            - APP_SECRET=mnopqr
-            - TZ=${IANA_TIMEZONE}
+            WELL_KNOWN_ENDPOINT: https://my-domain.com/.well-known/openid-configuration
+            CLIENT_ID: abcdef
+            CLIENT_SECRET: ghijkl
+            APP_SECRET: mnopqr
+            IANA_TIMEZONE: Etc/UTC
+            OPTIONAL: ${SECRET_OPTIONAL}
         restart: unless-stopped
         networks:
             - samplemaintainer_gitea
@@ -62,8 +65,6 @@ services:
         image: mariadb:10.5
         container_name: samplemaintainer_gitea_giteadb
         restart: unless-stopped
-        environment:
-            - TZ=${IANA_TIMEZONE}
         networks:
             - samplemaintainer_gitea
         cap_drop:
@@ -88,7 +89,8 @@ volumes:
 
 func TestCompleteDockerComposeYaml(t *testing.T) {
 	dataMap := map[string]string{
-		"HOST":          "my-domain.com",
+		"IANA_TIMEZONE": "Etc/UTC",
+		"BASE_DOMAIN":   "my-domain.com",
 		"APP_SECRET":    "mnopqr",
 		"CLIENT_ID":     "abcdef",
 		"CLIENT_SECRET": "ghijkl",
