@@ -1,6 +1,12 @@
 package api
 
 type PathsType struct {
+	BackendMetricsRead       string
+	BackendLogsRead          string
+	BackendLogsFlush         string
+	BackendMetricsCollect    string
+	BackendLogsWipe          string
+	BackendMetricsWipe       string
 	FrontendInstalledApps    string
 	FrontendAppOpen          string
 	FrontendIndex            string
@@ -104,6 +110,8 @@ type PathsType struct {
 	BackendBackupsPurgeBackupServer string
 
 	BackendSettings                               string
+	BackendSettingsObservabilityRead              string
+	BackendSettingsObservabilitySave              string
 	BackendSettingsBaseDomain                     string
 	BackendSettingsBaseDomainSave                 string
 	BackendSettingsBaseDomainRead                 string
@@ -286,7 +294,16 @@ var Paths = func() PathsType {
 	p.BackendBackupsListApps = p.BackendBackups + "/list-apps_basic"
 	p.BackendBackupsPurgeBackupServer = p.BackendBackups + "/purge-backup-server"
 
+	p.BackendMetricsRead = p.BackendApi + "/metrics/read"
+	p.BackendLogsRead = p.BackendApi + "/logs/read"
+	p.BackendLogsFlush = p.BackendApi + "/logs/flush"
+	p.BackendMetricsCollect = p.BackendApi + "/metrics/collect"
+	p.BackendLogsWipe = p.BackendApi + "/logs/wipe"
+	p.BackendMetricsWipe = p.BackendApi + "/metrics/wipe"
+
 	p.BackendSettings = p.BackendApi + "/settings"
+	p.BackendSettingsObservabilityRead = p.BackendSettings + "/observability/read"
+	p.BackendSettingsObservabilitySave = p.BackendSettings + "/observability/save"
 	p.BackendSettingsBaseDomain = p.BackendSettings + "/base-domain"
 	p.BackendSettingsBaseDomainSave = p.BackendSettingsBaseDomain + "/save"
 	p.BackendSettingsBaseDomainRead = p.BackendSettingsBaseDomain + "/read"

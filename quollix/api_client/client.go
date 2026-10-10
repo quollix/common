@@ -19,7 +19,9 @@ var httpClient = &http.Client{
 }
 
 type QuollixClient struct {
-	Parent *u.ComponentClient
+	Parent  *u.ComponentClient
+	Logs    *LogsClient
+	Metrics *MetricsClient
 
 	Auth           *AuthClient
 	Users          *UsersClient
@@ -54,6 +56,8 @@ func NewQuollixClientForRootUrl(rootUrl string) *QuollixClient {
 
 func NewQuollixClientWithParent(parent *u.ComponentClient) *QuollixClient {
 	client := &QuollixClient{Parent: parent}
+	client.Logs = &LogsClient{quollix: client}
+	client.Metrics = &MetricsClient{quollix: client}
 	client.Auth = &AuthClient{quollix: client}
 	client.Users = &UsersClient{quollix: client}
 	client.Apps = &QuollixAppsClient{quollix: client}

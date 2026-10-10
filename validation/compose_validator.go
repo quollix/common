@@ -11,16 +11,15 @@ var (
 	allowedTopLevelKeys             = u.MapOf("services", "volumes", "configs")
 	composePlaceholderRegex         = regexp.MustCompile(`\$\{([^}]+)\}`)
 	secretComposePlaceholderRegex   = regexp.MustCompile(`^SECRET_[A-Z0-9_]+$`)
-	allowedComposePlaceholders      = []string{"APP_SECRET", "BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SECRET_*", "SERVER_HOST"}
+	allowedComposePlaceholders      = []string{"BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SECRET_*", "LOGS_RETENTION_DAYS", "LOGS_MAX_DISK_SPACE_GB", "METRICS_RETENTION_DAYS"}
 	allowedComposePlaceholderLookup = map[string]struct{}{
-		// Deprecated: APP_SECRET is kept for legacy app-secret compatibility. New app definitions should use purpose-specific SECRET_* placeholders.
-		"APP_SECRET":    {},
-		"BASE_DOMAIN":   {},
-		"CLIENT_ID":     {},
-		"CLIENT_SECRET": {},
-		"IANA_TIMEZONE": {},
-		// SERVER_HOST is kept as a legacy alias for app compose files created before BASE_DOMAIN.
-		"SERVER_HOST": {},
+		"BASE_DOMAIN":            {},
+		"CLIENT_ID":              {},
+		"CLIENT_SECRET":          {},
+		"IANA_TIMEZONE":          {},
+		"LOGS_RETENTION_DAYS":    {},
+		"LOGS_MAX_DISK_SPACE_GB": {},
+		"METRICS_RETENTION_DAYS": {},
 	}
 )
 

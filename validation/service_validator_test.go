@@ -17,6 +17,9 @@ func TestValidateServiceKeys(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
+	err = serviceValidator.ValidateServiceKeys(map[string]any{"tty": true})
+	assert.Equal(t, notAllowedKeyInService, u.ExtractError(err))
+
 	err = serviceValidator.ValidateServiceKeys(map[string]any{"privileged": true})
 	assert.Equal(t, notAllowedKeyInService, u.ExtractError(err))
 

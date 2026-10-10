@@ -158,7 +158,7 @@ func TestValidateComposePlaceholders_WithoutPlaceholders(t *testing.T) {
 
 func TestValidateComposePlaceholders_WithAllowedPlaceholder(t *testing.T) {
 	f := &ComposeValidatorImpl{}
-	err := f.ValidateComposePlaceholders([]byte("${APP_SECRET}${BASE_DOMAIN}${SERVER_HOST}${CLIENT_ID}"))
+	err := f.ValidateComposePlaceholders([]byte("${BASE_DOMAIN}${CLIENT_ID}${LOGS_RETENTION_DAYS}${LOGS_MAX_DISK_SPACE_GB}${METRICS_RETENTION_DAYS}"))
 	assert.Nil(t, err)
 }
 

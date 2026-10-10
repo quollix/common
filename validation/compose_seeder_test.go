@@ -20,9 +20,11 @@ services:
       WELL_KNOWN_ENDPOINT: https://${BASE_DOMAIN}/.well-known/openid-configuration
       CLIENT_ID: ${CLIENT_ID}
       CLIENT_SECRET: ${CLIENT_SECRET}
-      APP_SECRET: ${APP_SECRET}
       IANA_TIMEZONE: ${IANA_TIMEZONE}
       OPTIONAL: ${SECRET_OPTIONAL}
+      LOGS_RETENTION: ${LOGS_RETENTION_DAYS}d
+      LOGS_STORAGE: ${LOGS_MAX_DISK_SPACE_GB}GB
+      METRICS_RETENTION: ${METRICS_RETENTION_DAYS}d
     volumes:
       - samplemaintainer_gitea_data:/data
 
@@ -43,9 +45,11 @@ services:
             WELL_KNOWN_ENDPOINT: https://my-domain.com/.well-known/openid-configuration
             CLIENT_ID: abcdef
             CLIENT_SECRET: ghijkl
-            APP_SECRET: mnopqr
             IANA_TIMEZONE: Etc/UTC
             OPTIONAL: ${SECRET_OPTIONAL}
+            LOGS_RETENTION: 30d
+            LOGS_STORAGE: 5GB
+            METRICS_RETENTION: 30d
         restart: unless-stopped
         networks:
             - samplemaintainer_gitea
@@ -89,11 +93,13 @@ volumes:
 
 func TestCompleteDockerComposeYaml(t *testing.T) {
 	dataMap := map[string]string{
-		"IANA_TIMEZONE": "Etc/UTC",
-		"BASE_DOMAIN":   "my-domain.com",
-		"APP_SECRET":    "mnopqr",
-		"CLIENT_ID":     "abcdef",
-		"CLIENT_SECRET": "ghijkl",
+		"IANA_TIMEZONE":          "Etc/UTC",
+		"BASE_DOMAIN":            "my-domain.com",
+		"CLIENT_ID":              "abcdef",
+		"CLIENT_SECRET":          "ghijkl",
+		"LOGS_RETENTION_DAYS":    "30",
+		"LOGS_MAX_DISK_SPACE_GB": "5",
+		"METRICS_RETENTION_DAYS": "30",
 	}
 	actualCompletedCompose, err := CompleteDockerComposeYaml("samplemaintainer", "gitea", []byte(inputCompose), dataMap)
 	assert.Nil(t, err)

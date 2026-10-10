@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	allowedServiceKeys        = u.MapOf("image", "container_name", "hostname", "ports", "volumes", "depends_on", "environment", "deploy", "tmpfs", "tty", "user", "command", "entrypoint", "labels", "configs")
+	allowedServiceKeys        = u.MapOf("image", "container_name", "hostname", "ports", "volumes", "depends_on", "environment", "deploy", "tmpfs", "user", "command", "entrypoint", "labels", "configs")
 	portsForbiddenToBeExposed = u.MapOf("22", "80", "443")
 	imageDigestRegex          = regexp.MustCompile(`^(sha256:[a-fA-F0-9]{64}|sha384:[a-fA-F0-9]{96}|sha512:[a-fA-F0-9]{128})$`)
 )

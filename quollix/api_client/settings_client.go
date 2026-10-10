@@ -73,3 +73,20 @@ func (c *QuollixSettingsClient) GetKnownHosts(repo *api.BackupServerConfigs) (st
 	}
 	return knownHostsStruct.Value, nil
 }
+
+func (c *QuollixSettingsClient) ReadObservabilitySettings() (*api.ObservabilitySettings, error) {
+	responseBody, err := c.quollix.Parent.DoRequest(api.Paths.BackendSettingsObservabilityRead, nil)
+	if err != nil {
+		return nil, err
+	}
+	var settings api.ObservabilitySettings
+	if err := json.Unmarshal(responseBody, &settings); err != nil {
+		return nil, err
+	}
+	return &settings, nil
+}
+
+func (c *QuollixSettingsClient) SaveObservabilitySettings(settings *api.ObservabilitySettings) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendSettingsObservabilitySave, settings)
+	return err
+}
