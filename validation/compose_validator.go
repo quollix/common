@@ -64,6 +64,10 @@ func isAllowedComposePlaceholder(placeholderName string) bool {
 }
 
 func (f *ComposeValidatorImpl) ValidateComposeMap(compose map[string]any, maintainerName, appName string) error {
+	compose, err := validateGrafanaNodeExporter(compose, maintainerName, appName)
+	if err != nil {
+		return err
+	}
 	if err := validateTopLevelKeys(compose); err != nil {
 		return err
 	}
