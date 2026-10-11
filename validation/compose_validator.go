@@ -11,7 +11,7 @@ var (
 	allowedTopLevelKeys             = u.MapOf("services", "volumes", "configs")
 	composePlaceholderRegex         = regexp.MustCompile(`\$\{([^}]+)\}`)
 	secretComposePlaceholderRegex   = regexp.MustCompile(`^SECRET_[A-Z0-9_]+$`)
-	allowedComposePlaceholders      = []string{"BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SECRET_*", "LOGS_RETENTION_DAYS", "LOGS_MAX_DISK_SPACE_GB", "METRICS_RETENTION_DAYS", "HOST_METRICS_INTERVAL_MINUTES"}
+	allowedComposePlaceholders      = []string{"BASE_DOMAIN", "CLIENT_ID", "CLIENT_SECRET", "IANA_TIMEZONE", "SECRET_*", "LOGS_RETENTION_DAYS", "LOGS_MAX_DISK_SPACE_GB", "METRICS_RETENTION_DAYS", "HOST_METRICS_INTERVAL_SECONDS"}
 	allowedComposePlaceholderLookup = map[string]struct{}{
 		"BASE_DOMAIN":                   {},
 		"CLIENT_ID":                     {},
@@ -20,7 +20,7 @@ var (
 		"LOGS_RETENTION_DAYS":           {},
 		"LOGS_MAX_DISK_SPACE_GB":        {},
 		"METRICS_RETENTION_DAYS":        {},
-		"HOST_METRICS_INTERVAL_MINUTES": {},
+		"HOST_METRICS_INTERVAL_SECONDS": {},
 	}
 )
 
@@ -65,7 +65,7 @@ func isAllowedComposePlaceholder(placeholderName string) bool {
 }
 
 func (f *ComposeValidatorImpl) ValidateComposeMap(compose map[string]any, maintainerName, appName string) error {
-	compose, err := validateGrafanaNodeExporter(compose, maintainerName, appName)
+	compose, err := validateGrafanaVector(compose, maintainerName, appName)
 	if err != nil {
 		return err
 	}
