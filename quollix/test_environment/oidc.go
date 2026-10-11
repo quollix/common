@@ -18,7 +18,7 @@ const (
 	OidcProviderAdminPassword = "localuserpassword"
 	OidcProviderName          = "Provider-Quollix"
 
-	defaultAdminUsername = "admin"
+	defaultAdminUsername = "administrator"
 	defaultAdminPassword = "password"
 	oidcClientName       = "Two-Instance-Client"
 )

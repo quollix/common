@@ -5,7 +5,7 @@ import "time"
 type LogRecord struct {
 	ReadTimestamp time.Time      `json:"_time"`
 	LogTimestamp  *time.Time     `json:"log_timestamp,omitempty"`
-	Severity      string         `json:"severity"`
+	Level         string         `json:"level"`
 	Message       string         `json:"_msg"`
 	Attributes    map[string]any `json:"attributes,omitempty"`
 	Maintainer    string         `json:"maintainer"`
