@@ -9,8 +9,9 @@ import (
 var (
 	AppStoreOfficialMaintainerPublicKeyOpenSSH = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKlo+3ABMOUtj4JSvbYVnIDhCqrxkiMvleXudu9Lwc87"
 
-	ApiPrefix    = "/api"
-	WipeDataPath = ApiPrefix + "/wipe-data"
+	ApiPrefix                  = "/api"
+	WipeDataPath               = ApiPrefix + "/wipe-data"
+	AddIncompatibleVersionPath = ApiPrefix + "/testing/versions/add-incompatible"
 
 	userPath                 = ApiPrefix + "/account"
 	LoginPath                = userPath + "/login"
@@ -24,6 +25,7 @@ var (
 	VersionPath                      = ApiPrefix + "/versions"
 	VersionUploadPath                = VersionPath + "/upload"
 	VersionDeletePath                = VersionPath + "/delete"
+	PruneIncompatibleVersionsPath    = VersionPath + "/prune-incompatible"
 	GetVersionsPath                  = VersionPath + "/list"
 	DownloadPath                     = VersionPath + "/download"
 	DownloadByIDPath                 = VersionPath + "/download-by-id"
@@ -63,6 +65,8 @@ type AppStoreClient interface {
 	DownloadNextVersionForUpdate(userName, appName string, currentVersionCreationTimestamp time.Time) (*NextVersionForUpdateResponse, error)
 	ListVersions(userName, appName string) ([]LeanVersionDto, error)
 	DeleteVersionByID(versionId int) error
+	PruneIncompatibleVersions(dryRun bool) ([]IncompatibleVersionDto, error)
+	AddIncompatibleVersion(appName, version string) (*CreatedVersionResponse, error)
 	SetVersionMigrationCheckpoint(versionId int, isMigrationCheckpoint bool) error
 	DeleteApp(appName string) error
 	ChangePassword(oldPassword, newPassword string) error
@@ -354,4 +358,24 @@ func (s *AppStoreClientImpl) WipeData() {
 	if err != nil {
 		panic("failed to wipe data: " + err.Error())
 	}
+}
+
+func (h *AppStoreClientImpl) PruneIncompatibleVersions(dryRun bool) ([]IncompatibleVersionDto, error) {
+	result, err := h.Parent.DoRequest(PruneIncompatibleVersionsPath, PruneIncompatibleVersionsRequest{DryRun: dryRun})
+	if err != nil {
+		return nil, err
+	}
+	versions, err := u.UnpackResponse[[]IncompatibleVersionDto](result)
+	if err != nil {
+		return nil, err
+	}
+	return *versions, nil
+}
+
+func (h *AppStoreClientImpl) AddIncompatibleVersion(appName, version string) (*CreatedVersionResponse, error) {
+	body, err := h.Parent.DoRequest(AddIncompatibleVersionPath, AddIncompatibleVersionRequest{AppName: appName, Version: version})
+	if err != nil {
+		return nil, err
+	}
+	return u.UnpackResponse[CreatedVersionResponse](body)
 }

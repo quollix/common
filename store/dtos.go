@@ -169,3 +169,18 @@ type AppTree struct {
 	Maintainer string `validate:"default"`
 	AppName    string `validate:"default"`
 }
+
+type PruneIncompatibleVersionsRequest struct {
+	DryRun bool `json:"dry_run"`
+}
+
+type IncompatibleVersionDto struct {
+	AppName string         `json:"app_name"`
+	Version LeanVersionDto `json:"version"`
+	Reason  string         `json:"reason"`
+}
+
+type AddIncompatibleVersionRequest struct {
+	AppName string `json:"app_name" validate:"default"`
+	Version string `json:"version" validate:"version_name"`
+}
