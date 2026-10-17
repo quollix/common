@@ -29,12 +29,11 @@ func (e *Element) Has(selector string) (bool, *Element, error) {
 }
 
 func (e *Element) Text() (string, error) {
-	var text string
-	err := e.evaluate(fmt.Sprintf(`(() => {
+	text, err := evaluateElement[string](e, fmt.Sprintf(`(() => {
 		const element = %s;
 		if (!element) throw new Error("element not found");
 		return element.innerText ?? element.textContent ?? "";
-	})()`, e.expr), &text)
+	})()`, e.expr))
 	return text, err
 }
 
@@ -47,12 +46,11 @@ func (e *Element) MustText() string {
 }
 
 func (e *Element) Attribute(name string) (*string, error) {
-	var value *string
-	err := e.evaluate(fmt.Sprintf(`(() => {
+	value, err := evaluateElement[*string](e, fmt.Sprintf(`(() => {
 		const element = %s;
 		if (!element) throw new Error("element not found");
 		return element.getAttribute(%s);
-	})()`, e.expr, strconv.Quote(name)), &value)
+	})()`, e.expr, strconv.Quote(name)))
 	return value, err
 }
 
@@ -65,12 +63,11 @@ func (e *Element) MustAttribute(name string) *string {
 }
 
 func (e *Element) Property(name string) (*PropertyValue, error) {
-	var value any
-	err := e.evaluate(fmt.Sprintf(`(() => {
+	value, err := evaluateElement[any](e, fmt.Sprintf(`(() => {
 		const element = %s;
 		if (!element) throw new Error("element not found");
 		return element[%s];
-	})()`, e.expr, strconv.Quote(name)), &value)
+	})()`, e.expr, strconv.Quote(name)))
 	return &PropertyValue{value: value}, err
 }
 
@@ -80,7 +77,7 @@ func (e *Element) Click() error {
 		if (!element) throw new Error("element not found");
 		element.scrollIntoView({block: "center", inline: "center"});
 		element.click();
-	})()`, e.expr), nil)
+	})()`, e.expr))
 }
 
 func (e *Element) MustClick() *Element {
@@ -98,7 +95,7 @@ func (e *Element) SelectAllText() error {
 		if (typeof element.select === "function") {
 			element.select();
 		}
-	})()`, e.expr), nil)
+	})()`, e.expr))
 }
 
 func (e *Element) MustSelectAllText() *Element {
@@ -116,7 +113,7 @@ func (e *Element) Input(value string) error {
 		element.value = %s;
 		element.dispatchEvent(new Event("input", {bubbles: true}));
 		element.dispatchEvent(new Event("change", {bubbles: true}));
-	})()`, e.expr, strconv.Quote(value)), nil)
+	})()`, e.expr, strconv.Quote(value)))
 }
 
 func (e *Element) MustInput(value string) *Element {
@@ -137,7 +134,7 @@ func (e *Element) Select(label string) error {
 		element.value = option.value;
 		element.dispatchEvent(new Event("input", {bubbles: true}));
 		element.dispatchEvent(new Event("change", {bubbles: true}));
-	})()`, e.expr, strconv.Quote(label), strconv.Quote(label)), nil)
+	})()`, e.expr, strconv.Quote(label), strconv.Quote(label)))
 }
 
 func (e *Element) MustSelect(label string) *Element {
@@ -152,10 +149,10 @@ func (e *Element) TypeText(value string) error {
 		const element = %s;
 		if (!element) throw new Error("element not found");
 		element.focus();
-	})()`, e.expr), nil); err != nil {
+	})()`, e.expr)); err != nil {
 		return err
 	}
-	if err := chromedp.Run(e.page.ctx, chromedp.KeyEvent(value)); err != nil {
+	if err := chromedp.Do(e.page.ctx, chromedp.KeyEvent(value)); err != nil {
 		return u.Logger.NewError(err.Error())
 	}
 	return nil
@@ -173,16 +170,21 @@ func (e *Element) ensureExists() error {
 }
 
 func (e *Element) exists() (bool, error) {
-	var exists bool
-	err := e.evaluate(fmt.Sprintf(`(() => %s !== null && %s !== undefined)()`, e.expr, e.expr), &exists)
+	exists, err := evaluateElement[bool](e, fmt.Sprintf(`(() => %s !== null && %s !== undefined)()`, e.expr, e.expr))
 	return exists, err
 }
 
-func (e *Element) evaluate(expression string, result any) error {
-	if err := chromedp.Run(e.page.ctx, chromedp.EvaluateAsDevTools(expression, result)); err != nil {
-		return u.Logger.NewError(err.Error())
+func (e *Element) evaluate(expression string) error {
+	_, err := evaluateElement[chromedp.Void](e, expression)
+	return err
+}
+
+func evaluateElement[T any](e *Element, expression string) (T, error) {
+	result, err := chromedp.Run(e.page.ctx, chromedp.EvaluateAsDevTools[T](expression))
+	if err != nil {
+		return result, u.Logger.NewError(err.Error())
 	}
-	return nil
+	return result, nil
 }
 
 func (v *PropertyValue) String() string {

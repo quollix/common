@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
@@ -48,15 +49,15 @@ func (p *Page) Reload() error {
 }
 
 func (p *Page) WaitLoad() error {
-	if err := chromedp.Run(p.ctx, chromedp.WaitReady("body", chromedp.ByQuery)); err != nil {
+	if err := chromedp.Do(p.ctx, chromedp.WaitReady(chromedp.CSS("body"))); err != nil {
 		return u.Logger.NewError(err.Error())
 	}
 	return nil
 }
 
 func (p *Page) Info() (*PageInfo, error) {
-	var currentURL string
-	if err := chromedp.Run(p.ctx, chromedp.Location(&currentURL)); err != nil {
+	currentURL, err := chromedp.Run(p.ctx, chromedp.Location())
+	if err != nil {
 		return nil, u.Logger.NewError(err.Error())
 	}
 	return &PageInfo{URL: currentURL}, nil
@@ -77,7 +78,7 @@ func (p *Page) WaitOpen() func() (*Page, error) {
 		targetID := <-targetIDChannel
 		ctx, cancel := chromedp.NewContext(p.browser.ctx, chromedp.WithTargetID(targetID))
 		page := &Page{browser: p.browser, ctx: ctx, cancel: cancel}
-		if err := chromedp.Run(ctx); err != nil {
+		if err := chromedp.Do(ctx); err != nil {
 			cancel()
 			return nil, u.Logger.NewError(err.Error())
 		}
@@ -126,52 +127,44 @@ func (p *Page) Has(selector string) (bool, *Element, error) {
 }
 
 func (p *Page) SetCookie(cookie *http.Cookie, baseURL string) error {
-	if err := chromedp.Run(p.ctx, chromedp.ActionFunc(func(ctx context.Context) error {
-		return network.SetCookie(cookie.Name, cookie.Value).
-			WithURL(baseURL).
-			WithPath(cookiePath(cookie)).
-			WithSecure(cookie.Secure).
-			WithHTTPOnly(cookie.HttpOnly).
-			Do(ctx)
-	})); err != nil {
+	if _, err := chromedp.Call(p.ctx, network.SetCookie, network.SetCookieParams{
+		Name:     cookie.Name,
+		Value:    cookie.Value,
+		URL:      baseURL,
+		Path:     cookiePath(cookie),
+		Secure:   new(cookie.Secure),
+		HTTPOnly: new(cookie.HttpOnly),
+	}); err != nil {
 		return u.Logger.NewError(err.Error(), "url", baseURL)
 	}
 	return nil
 }
 
 func (p *Page) ClearCookies() error {
-	if err := chromedp.Run(p.ctx, chromedp.ActionFunc(func(ctx context.Context) error {
-		return network.ClearBrowserCookies().Do(ctx)
-	})); err != nil {
+	if _, err := chromedp.Call(p.ctx, network.ClearBrowserCookies, cdp.Empty{}); err != nil {
 		return u.Logger.NewError(err.Error())
 	}
 	return nil
 }
 
 func (p *Page) Cookies(url string) ([]*network.Cookie, error) {
-	var cookies []*network.Cookie
-	err := chromedp.Run(p.ctx, chromedp.ActionFunc(func(ctx context.Context) error {
-		var err error
-		cookies, err = network.GetCookies().WithURLs([]string{url}).Do(ctx)
-		return err
-	}))
+	result, err := chromedp.Call(p.ctx, network.GetCookies, network.GetCookiesParams{URLs: []string{url}})
 	if err != nil {
 		return nil, u.Logger.NewError(err.Error(), "url", url)
 	}
-	return cookies, nil
+	return result.Cookies, nil
 }
 
 func (p *Page) count(expr string) (int, error) {
-	var count int
-	err := chromedp.Run(p.ctx, chromedp.EvaluateAsDevTools(fmt.Sprintf(`(() => %s.length)()`, expr), &count))
+	count, err := chromedp.Run(p.ctx, chromedp.EvaluateAsDevTools[int](fmt.Sprintf(`(() => %s.length)()`, expr)))
 	if err != nil {
 		return 0, u.Logger.NewError(err.Error())
 	}
 	return count, nil
 }
 
-func (p *Page) runAndWaitReady(actions ...chromedp.Action) error {
-	if err := chromedp.Run(p.ctx, append(actions, chromedp.WaitReady("body", chromedp.ByQuery))...); err != nil {
+func (p *Page) runAndWaitReady(actions ...chromedp.Action[chromedp.Void]) error {
+	if err := chromedp.Do(p.ctx, append(actions, chromedp.WaitReady(chromedp.CSS("body")))...); err != nil {
 		return u.Logger.NewError(err.Error())
 	}
 	return nil

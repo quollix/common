@@ -30,7 +30,7 @@ func NewBrowser(headful bool) (*Browser, error) {
 
 	allocatorCtx, allocatorCancel := chromedp.NewExecAllocator(context.Background(), options...)
 	ctx, cancel := chromedp.NewContext(allocatorCtx, chromedp.WithErrorf(chromedpErrorf))
-	if err := chromedp.Run(ctx); err != nil {
+	if err := chromedp.Do(ctx); err != nil {
 		cancel()
 		allocatorCancel()
 		return nil, u.Logger.NewError(err.Error())
@@ -74,7 +74,7 @@ func (b *Browser) NewIncognito() (*Browser, error) {
 func (b *Browser) NewPage() (*Page, error) {
 	ctx, cancel := chromedp.NewContext(b.ctx)
 	page := &Page{browser: b, ctx: ctx, cancel: cancel}
-	if err := chromedp.Run(ctx); err != nil {
+	if err := chromedp.Do(ctx); err != nil {
 		cancel()
 		return nil, u.Logger.NewError(err.Error())
 	}
