@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	allowedServiceKeys        = u.MapOf("image", "container_name", "hostname", "ports", "volumes", "depends_on", "environment", "deploy", "tmpfs", "user", "command", "entrypoint", "labels", "configs")
+	allowedServiceKeys        = u.MapOf("image", "container_name", "hostname", "ports", "volumes", "depends_on", "environment", "deploy", "tmpfs", "user", "command", "entrypoint", "labels", "configs", "ulimits")
 	portsForbiddenToBeExposed = u.MapOf("22", "80", "443")
 	imageDigestRegex          = regexp.MustCompile(`^(sha256:[a-fA-F0-9]{64}|sha384:[a-fA-F0-9]{96}|sha512:[a-fA-F0-9]{128})$`)
 )
@@ -122,6 +122,24 @@ func (s *ServiceValidatorImpl) ValidateServiceKeys(serviceMap map[string]any) er
 		_, ok := allowedServiceKeys[key]
 		if !ok {
 			return u.Logger.NewError(notAllowedKeyInService, KeyField, key)
+		}
+	}
+	return validateServiceUlimits(serviceMap)
+}
+
+func validateServiceUlimits(serviceMap map[string]any) error {
+	value, exists := serviceMap["ulimits"]
+	if !exists {
+		return nil
+	}
+	limits, ok := value.(map[string]any)
+	if !ok {
+		return u.Logger.NewError("'ulimits' must be a map")
+	}
+	for name := range limits {
+		// Other limits can affect memory locking, scheduling priorities or core dumps.
+		if name != "nofile" {
+			return u.Logger.NewError("only 'nofile' is allowed in 'ulimits'", KeyField, name)
 		}
 	}
 	return nil

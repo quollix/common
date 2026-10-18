@@ -14,6 +14,9 @@ func TestValidateServiceKeys(t *testing.T) {
 	err := serviceValidator.ValidateServiceKeys(map[string]any{
 		"image":    "repo:1.0.0",
 		"hostname": "memcached",
+		"ulimits": map[string]any{
+			"nofile": map[string]any{"soft": 65536, "hard": 65536},
+		},
 	})
 	assert.Nil(t, err)
 
@@ -28,6 +31,17 @@ func TestValidateServiceKeys(t *testing.T) {
 		"gpus":  "all",
 	})
 	assert.Equal(t, notAllowedKeyInService, u.ExtractError(err))
+}
+
+func TestServiceValidatorRejectsOtherUlimits(t *testing.T) {
+	serviceValidator := &ServiceValidatorImpl{}
+	err := serviceValidator.ValidateServiceKeys(map[string]any{
+		"ulimits": map[string]any{
+			"nofile":  65536,
+			"memlock": -1,
+		},
+	})
+	deepstack.AssertDeepStackError(t, err, "only 'nofile' is allowed in 'ulimits'", KeyField, "memlock")
 }
 
 func TestValidateImage(t *testing.T) {
