@@ -89,3 +89,11 @@ func (c *UsersClient) SetEnabled(userId int, isEnabled bool) error {
 	})
 	return err
 }
+
+func (c *UsersClient) SetRole(userId int, isAdmin bool) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendUsersSetRole, api.SetUserRoleRequest{
+		UserId:  strconv.Itoa(userId),
+		IsAdmin: isAdmin,
+	})
+	return err
+}

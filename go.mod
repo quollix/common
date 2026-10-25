@@ -1,6 +1,6 @@
 module github.com/quollix/common
 
-go 1.26.9
+go 1.26.10
 
 require (
 	github.com/chromedp/cdproto v0.158.2

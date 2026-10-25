@@ -41,6 +41,11 @@ type SetUserEnabledRequest struct {
 	IsEnabled bool   `json:"is_enabled"`
 }
 
+type SetUserRoleRequest struct {
+	UserId  string `json:"user_id" validate:"number"`
+	IsAdmin bool   `json:"is_admin"`
+}
+
 type AdminAppDto struct {
 	AppId, Maintainer, AppName, VersionName, AccessPolicy,
 	Port, ClientId, ClientSecret, AppSecret, DocsUrl, VersionCreationTimestampFormatted, VersionCreationTimestampTooltip string
