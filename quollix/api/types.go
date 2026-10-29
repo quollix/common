@@ -18,6 +18,7 @@ type SshConnectionRequest struct {
 
 type BackupServerConfigs struct {
 	IsEnabled          bool   `json:"is_enabled"`
+	BackupFolderPath   string `json:"backup_folder_path" validate:"backup_folder_path"`
 	Host               string `json:"host" validate:"remote_host"`
 	SshPort            string `json:"port" validate:"number"`
 	SshUser            string `json:"user" validate:"default"`
