@@ -68,13 +68,6 @@ func (c *QuollixBackupsClient) ListAppsInRepository() ([]api.MaintainerAndApp, e
 }
 
 func (c *QuollixBackupsClient) PurgeServer(repo *api.BackupServerConfigs) error {
-	purgeRequest := &api.SshConnectionRequest{
-		Host:          repo.Host,
-		SshPort:       repo.SshPort,
-		SshKnownHosts: repo.SshKnownHosts,
-		SshUser:       repo.SshUser,
-		SshPassword:   repo.SshPassword,
-	}
-	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendBackupsPurgeBackupServer, purgeRequest)
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendBackupsPurgeBackupServer, repo)
 	return err
 }
