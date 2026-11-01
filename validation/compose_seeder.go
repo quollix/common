@@ -1,9 +1,12 @@
 package validation
 
 import (
+	"regexp"
+
 	"gopkg.in/yaml.v3"
-	"strings"
 )
+
+var composeSeederPlaceholderRegex = regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)(:-[^}]*)?\}`)
 
 func CompleteDockerComposeYaml(maintainer, appName string, inputCompose []byte, dataMap map[string]string) ([]byte, error) {
 	var composeMap map[string]any
@@ -26,9 +29,13 @@ func injectPlaceholders(composeMap map[string]any, dataMap map[string]string) ([
 		return nil, err
 	}
 	content := string(composeBytes)
-	for name, value := range dataMap {
-		content = strings.ReplaceAll(content, "${"+name+"}", value)
-	}
+	content = composeSeederPlaceholderRegex.ReplaceAllStringFunc(content, func(placeholder string) string {
+		matches := composeSeederPlaceholderRegex.FindStringSubmatch(placeholder)
+		if value, exists := dataMap[matches[1]]; exists {
+			return value
+		}
+		return placeholder
+	})
 	return []byte(content), nil
 }
 

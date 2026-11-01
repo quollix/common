@@ -107,6 +107,34 @@ func TestCompleteDockerComposeYaml(t *testing.T) {
 	assertYamlEquality(t, []byte(expectedCompletedCompose), actualCompletedCompose)
 }
 
+func TestCompleteDockerComposeYamlReplacesRepeatedAndDefaultedPlaceholders(t *testing.T) {
+	input := []byte(`services:
+  app:
+    environment:
+      DOMAIN: "${BASE_DOMAIN}"
+      URL: "https://${BASE_DOMAIN}/"
+      DEFAULTED: "${APP_NAME:-fallback}"
+      UNRESOLVED: "${OPTIONAL_VALUE:-default}"
+`)
+	completed, err := CompleteDockerComposeYaml("maintainer", "app", input, map[string]string{
+		"BASE_DOMAIN": "example.com",
+		"APP_NAME":    "grafana",
+	})
+	assert.Nil(t, err)
+
+	var compose map[string]any
+	assert.Nil(t, yaml.Unmarshal(completed, &compose))
+	services := compose["services"].(map[string]any)
+	app := services["app"].(map[string]any)
+	environment := app["environment"].(map[string]any)
+	assert.Equal(t, "example.com", environment["DOMAIN"])
+	assert.Equal(t, "https://example.com/", environment["URL"])
+	assert.Equal(t, "grafana", environment["DEFAULTED"])
+	// Docker Compose supports ${NAME:-default}. We preserve unmatched placeholders so Compose can apply their defaults.
+	// See https://docs.docker.com/reference/compose-file/interpolation/.
+	assert.Equal(t, "${OPTIONAL_VALUE:-default}", environment["UNRESOLVED"])
+}
+
 func assertYamlEquality(t *testing.T, a, b []byte) {
 	var m1, m2 map[string]any
 	if err := yaml.Unmarshal(a, &m1); err != nil {
