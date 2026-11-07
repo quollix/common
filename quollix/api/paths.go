@@ -32,6 +32,7 @@ type PathsType struct {
 	FrontendProviders        string
 	FrontendClients          string
 	FrontendCompliance       string
+	FrontendAlerts           string
 	FrontendMaintenance      string
 	FrontendTerminalApps     string
 	FrontendTerminalServices string
@@ -212,6 +213,7 @@ var Paths = func() PathsType {
 	p.FrontendProviders = "/providers"
 	p.FrontendClients = "/clients"
 	p.FrontendCompliance = "/compliance"
+	p.FrontendAlerts = "/alerts"
 	p.FrontendMaintenance = "/maintenance"
 
 	p.FrontendBackedUpApps = "/backed-up-apps"
