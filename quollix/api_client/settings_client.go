@@ -90,3 +90,20 @@ func (c *QuollixSettingsClient) SaveObservabilitySettings(settings *api.Observab
 	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendSettingsObservabilitySave, settings)
 	return err
 }
+
+func (c *QuollixSettingsClient) ReadAlertSettings() (*api.AlertSettings, error) {
+	responseBody, err := c.quollix.Parent.DoRequest(api.Paths.BackendSettingsAlertsRead, nil)
+	if err != nil {
+		return nil, err
+	}
+	var settings api.AlertSettings
+	if err := json.Unmarshal(responseBody, &settings); err != nil {
+		return nil, err
+	}
+	return &settings, nil
+}
+
+func (c *QuollixSettingsClient) SaveAlertSettings(settings *api.AlertSettings) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendSettingsAlertsSave, settings)
+	return err
+}

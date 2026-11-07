@@ -111,6 +111,8 @@ type PathsType struct {
 	BackendBackupsPurgeBackupServer string
 
 	BackendSettings                               string
+	BackendSettingsAlertsRead                     string
+	BackendSettingsAlertsSave                     string
 	BackendSettingsObservabilityRead              string
 	BackendSettingsObservabilitySave              string
 	BackendSettingsBaseDomain                     string
@@ -304,6 +306,8 @@ var Paths = func() PathsType {
 	p.BackendMetricsWipe = p.BackendApi + "/metrics/wipe"
 
 	p.BackendSettings = p.BackendApi + "/settings"
+	p.BackendSettingsAlertsRead = p.BackendSettings + "/alerts/read"
+	p.BackendSettingsAlertsSave = p.BackendSettings + "/alerts/save"
 	p.BackendSettingsObservabilityRead = p.BackendSettings + "/observability/read"
 	p.BackendSettingsObservabilitySave = p.BackendSettings + "/observability/save"
 	p.BackendSettingsBaseDomain = p.BackendSettings + "/base-domain"
