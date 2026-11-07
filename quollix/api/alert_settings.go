@@ -6,4 +6,7 @@ type AlertSettings struct {
 	DiskUsageEnabled         bool `json:"disk_usage_enabled"`
 	CertificateExpiryEnabled bool `json:"certificate_expiry_enabled"`
 	QuollixErrorsEnabled     bool `json:"quollix_errors_enabled"`
+	HostUsageTriggerPercent  int  `json:"host_usage_trigger_percent"`
+	HostUsageRecoveryPercent int  `json:"host_usage_recovery_percent"`
+	HostUsagePendingMinutes  int  `json:"host_usage_pending_minutes"`
 }
