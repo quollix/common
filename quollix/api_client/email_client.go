@@ -107,3 +107,30 @@ func (c *EmailClient) ResetInvitationTemplate() error {
 	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendEmailResetInvitationTemplate, nil)
 	return err
 }
+
+func (c *EmailClient) SaveBroadcastTemplate(template string) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendEmailSaveBroadcastTemplate, api.BroadcastEmailTemplateRequest{Template: template})
+	return err
+}
+
+func (c *EmailClient) ReadBroadcastTemplate() (string, error) {
+	body, err := c.quollix.Parent.DoRequest(api.Paths.BackendEmailReadBroadcastTemplate, nil)
+	if err != nil {
+		return "", err
+	}
+	var response api.BroadcastEmailTemplateRequest
+	if err := json.Unmarshal(body, &response); err != nil {
+		return "", err
+	}
+	return response.Template, nil
+}
+
+func (c *EmailClient) ResetBroadcastTemplate() error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendEmailResetBroadcastTemplate, nil)
+	return err
+}
+
+func (c *EmailClient) SendBroadcast(subject string) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendEmailSendBroadcast, api.SendBroadcastEmailRequest{Subject: subject})
+	return err
+}

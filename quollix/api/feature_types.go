@@ -189,3 +189,11 @@ type TestEmailRequest struct {
 type InvitationEmailTemplateRequest struct {
 	Template string `json:"template" validate:"ignore"`
 }
+
+type BroadcastEmailTemplateRequest struct {
+	Template string `json:"template" validate:"ignore"`
+}
+
+type SendBroadcastEmailRequest struct {
+	Subject string `json:"subject" validate:"ignore"`
+}

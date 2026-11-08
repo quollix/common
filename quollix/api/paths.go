@@ -164,6 +164,10 @@ type PathsType struct {
 	BackendEmailReadInvitationTemplate  string
 	BackendEmailSaveInvitationTemplate  string
 	BackendEmailResetInvitationTemplate string
+	BackendEmailReadBroadcastTemplate   string
+	BackendEmailSaveBroadcastTemplate   string
+	BackendEmailResetBroadcastTemplate string
+	BackendEmailSendBroadcast           string
 
 	BackendOidcClients                    string
 	BackendAppsRegenerateOidcCredentials  string
@@ -362,6 +366,10 @@ var Paths = func() PathsType {
 	p.BackendEmailReadInvitationTemplate = p.BackendEmail + "/read-invitation-template"
 	p.BackendEmailSaveInvitationTemplate = p.BackendEmail + "/save-invitation-template"
 	p.BackendEmailResetInvitationTemplate = p.BackendEmail + "/reset-invitation-template"
+	p.BackendEmailReadBroadcastTemplate = p.BackendEmail + "/read-broadcast-template"
+	p.BackendEmailSaveBroadcastTemplate = p.BackendEmail + "/save-broadcast-template"
+	p.BackendEmailResetBroadcastTemplate = p.BackendEmail + "/reset-broadcast-template"
+	p.BackendEmailSendBroadcast = p.BackendEmail + "/send-broadcast"
 
 	p.BackendOidcClients = p.BackendApi + "/oidc-clients"
 	p.BackendAppsRegenerateOidcCredentials = p.BackendOidcClients + "/regenerate-oidc-credentials"
