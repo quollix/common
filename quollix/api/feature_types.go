@@ -196,5 +196,5 @@ type BroadcastEmailTemplateRequest struct {
 
 type SendBroadcastEmailRequest struct {
 	Subject string `json:"subject" validate:"ignore"`
-	Body    string `json:"body" validate:"ignore"`
+	Content string `json:"content" validate:"ignore"`
 }

@@ -130,7 +130,7 @@ func (c *EmailClient) ResetBroadcastTemplate() error {
 	return err
 }
 
-func (c *EmailClient) SendBroadcast(subject, body string) error {
-	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendEmailSendBroadcast, api.SendBroadcastEmailRequest{Subject: subject, Body: body})
+func (c *EmailClient) SendBroadcast(subject, content string) error {
+	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendEmailSendBroadcast, api.SendBroadcastEmailRequest{Subject: subject, Content: content})
 	return err
 }
