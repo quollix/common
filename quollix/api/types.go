@@ -27,6 +27,25 @@ type BackupServerConfigs struct {
 	EncryptionPassword string `json:"encryption_password" validate:"loose"`
 }
 
+type PurgeBackupServerRequest struct {
+	Host             string `json:"host" validate:"remote_host"`
+	SshPort          string `json:"port" validate:"number"`
+	SshUser          string `json:"user" validate:"default"`
+	SshPassword      string `json:"password" validate:"loose"`
+	SshKnownHosts    string `json:"known_hosts" validate:"known_hosts"`
+	BackupFolderPath string `json:"backup_folder_path" validate:"backup_folder_path"`
+}
+
+func (r *PurgeBackupServerRequest) ConvertToSshConnectionTestRequest() *SshConnectionRequest {
+	return &SshConnectionRequest{
+		Host:          r.Host,
+		SshPort:       r.SshPort,
+		SshUser:       r.SshUser,
+		SshPassword:   r.SshPassword,
+		SshKnownHosts: r.SshKnownHosts,
+	}
+}
+
 func (r *BackupServerConfigs) ConvertToSshConnectionTestRequest() *SshConnectionRequest {
 	return &SshConnectionRequest{
 		Host:          r.Host,

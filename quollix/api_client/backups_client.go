@@ -67,7 +67,7 @@ func (c *QuollixBackupsClient) ListAppsInRepository() ([]api.MaintainerAndApp, e
 	return apps, nil
 }
 
-func (c *QuollixBackupsClient) PurgeServer(repo *api.BackupServerConfigs) error {
+func (c *QuollixBackupsClient) PurgeServer(repo *api.PurgeBackupServerRequest) error {
 	_, err := c.quollix.Parent.DoRequest(api.Paths.BackendBackupsPurgeBackupServer, repo)
 	return err
 }
